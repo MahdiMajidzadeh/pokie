@@ -26,12 +26,14 @@ class Player extends Model
         return $this->hasMany(Payback::class);
     }
 
+    /** Player balance: buy-ins stored negative, paybacks positive. Balance = -buyIns - paybacks. */
     public function getAmountAttribute(): float
     {
         $buyIns = $this->buyIns()->sum('amount');
         $paybacks = $this->paybacks()->sum('amount');
+        //dd($buyIns, $paybacks);
 
-        return (float) ($buyIns - $paybacks);
+        return (float) ($paybacks + $buyIns);
     }
 
     /** @return Collection<int, object{type: string, label: string, amount: float|string, created_at: \Illuminate\Support\Carbon}> */

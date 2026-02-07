@@ -10,15 +10,14 @@
     <h1 class="text-2xl font-bold mb-2">{{ $table->name }}</h1>
 
     @if($isManager)
-        <p class="text-sm text-amber-700 mb-4">You are managing this table. Save this page URL to add players and record buy-ins or paybacks later.</p>
-    @else
-        <p class="text-sm text-stone-600 mb-4">View only. Use the manager link to add players or record transactions.</p>
+        <p class="text-sm text-amber-700 mb-4">admin mode</p>
+    
     @endif
 
     <div class="bg-white rounded-lg border border-stone-200 p-4 mb-6 space-y-3">
         <div class="grid grid-cols-[1fr_auto] gap-x-6 gap-y-1 items-baseline max-w-md">
             <p class="text-lg font-semibold">Table Balance <span class="text-sm font-normal text-stone-500">(total buy-ins)</span></p>
-            <span class="font-mono text-lg text-right tabular-nums">{{ number_format($table->table_balance, 0) }}</span>
+            <span class="font-mono text-lg text-right tabular-nums text-green-700">{{ number_format($table->table_balance, 0) }}</span>
             <p class="text-lg font-semibold">Bank</p>
             <span class="font-mono text-lg text-right tabular-nums">{{ number_format($table->bank, 0) }}</span>
         </div>
@@ -31,7 +30,7 @@
                     @foreach($table->paybacks as $payback)
                         <li class="grid grid-cols-[1fr_auto_auto] gap-4 items-center">
                             <span>{{ $payback->player->name ?? '—' }}</span>
-                            <span class="font-mono text-right tabular-nums">{{ number_format($payback->amount, 0) }}</span>
+                            <span class="font-mono text-right tabular-nums text-blue-700">+{{ number_format($payback->amount, 0) }}</span>
                             <span class="text-stone-400">{{ $payback->created_at->timezone('Asia/Tehran')->format('M j, H:i') }}</span>
                         </li>
                     @endforeach
@@ -48,7 +47,7 @@
             @foreach($table->players as $player)
                 <li class="grid grid-cols-[1fr_auto] gap-4 items-center bg-white rounded border border-stone-200 px-4 py-2">
                     <button type="button" onclick="openPlayerModal({{ $player->id }})" class="text-left text-amber-600 hover:underline font-medium cursor-pointer">{{ $player->name }}</button>
-                    <span class="font-mono text-right tabular-nums">{{ number_format($player->amount, 0) }}</span>
+                    <span class="font-mono text-right tabular-nums">{{ number_format($player->amount) }}</span>
                 </li>
             @endforeach
         </ul>
@@ -64,7 +63,7 @@
                 <div class="p-4 overflow-y-auto flex-1">
                     @foreach($table->players as $player)
                         <div id="player-content-{{ $player->id }}" class="player-modal-content hidden" data-player-name="{{ e($player->name) }}">
-                            <p class="text-sm text-stone-500 mb-3">Balance: <span class="font-mono tabular-nums">{{ number_format($player->amount, 0) }}</span></p>
+                            <p class="text-sm text-stone-500 mb-3">Balance: <span class="font-mono tabular-nums">{{ number_format(abs($player->amount), 0) }}</span></p>
                             <p class="text-sm font-semibold text-stone-600 mb-1">All records</p>
                             @if($player->records->isEmpty())
                                 <p class="text-sm text-stone-500">No buy-ins or paybacks yet.</p>
@@ -73,7 +72,7 @@
                                     @foreach($player->records as $record)
                                         <li class="grid grid-cols-[1fr_auto_auto] gap-4 items-center rounded border border-stone-200 px-3 py-2">
                                             <span class="{{ $record->type === 'buy_in' ? 'text-green-700' : 'text-blue-700' }}">{{ $record->label }}</span>
-                                            <span class="font-mono text-right tabular-nums">{{ number_format($record->amount, 0) }}</span>
+                                            <span class="font-mono text-right tabular-nums {{ $record->amount < 0 ? 'text-green-700' : 'text-blue-700' }}">{{ $record->amount >= 0 ? '+' : '' }}{{ number_format($record->amount, 0) }}</span>
                                             <span class="text-stone-400">{{ $record->created_at->timezone('Asia/Tehran')->format('M j, H:i') }}</span>
                                         </li>
                                     @endforeach

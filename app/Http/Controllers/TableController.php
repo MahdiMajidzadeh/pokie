@@ -93,7 +93,7 @@ class TableController extends Controller
         BuyIn::create([
             'table_id' => $table->id,
             'player_id' => $player->id,
-            'amount' => $validated['amount'],
+            'amount' => -abs((float) $validated['amount']),
         ]);
 
         return redirect()->route('table.manager', ['token' => $token, 'manager_token' => $managerToken])
@@ -122,7 +122,7 @@ class TableController extends Controller
         Payback::create([
             'table_id' => $table->id,
             'player_id' => $player->id,
-            'amount' => $validated['amount'],
+            'amount' => abs((float) $validated['amount']),
         ]);
 
         return redirect()->route('table.manager', ['token' => $token, 'manager_token' => $managerToken])
