@@ -67,7 +67,7 @@ class TableController extends Controller
 
         $table->players()->create(['name' => $validated['name']]);
 
-        return redirect()->route('table.manager', compact('token', 'managerToken'))
+        return redirect()->route('table.manager', ['token' => $token, 'manager_token' => $managerToken])
             ->with('success', 'Player added.');
     }
 
@@ -96,7 +96,7 @@ class TableController extends Controller
             'amount' => $validated['amount'],
         ]);
 
-        return redirect()->route('table.manager', compact('token', 'managerToken'))
+        return redirect()->route('table.manager', ['token' => $token, 'manager_token' => $managerToken])
             ->with('success', 'Buy-in recorded.');
     }
 
@@ -125,7 +125,7 @@ class TableController extends Controller
             'amount' => $validated['amount'],
         ]);
 
-        return redirect()->route('table.manager', compact('token', 'managerToken'))
+        return redirect()->route('table.manager', ['token' => $token, 'manager_token' => $managerToken])
             ->with('success', 'Payback recorded.');
     }
 }
