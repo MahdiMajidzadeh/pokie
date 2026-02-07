@@ -16,9 +16,11 @@
     @endif
 
     <div class="bg-white rounded-lg border border-stone-200 p-4 mb-6 space-y-3">
-        <div class="flex flex-wrap gap-6">
-            <p class="text-lg font-semibold">Table Balance: <span class="font-mono">{{ number_format($table->table_balance, 0) }}</span> <span class="text-sm font-normal text-stone-500">(total buy-ins)</span></p>
-            <p class="text-lg font-semibold">Bank: <span class="font-mono">{{ number_format($table->bank, 0) }}</span></p>
+        <div class="grid grid-cols-[1fr_auto] gap-x-6 gap-y-1 items-baseline max-w-md">
+            <p class="text-lg font-semibold">Table Balance <span class="text-sm font-normal text-stone-500">(total buy-ins)</span></p>
+            <span class="font-mono text-lg text-right tabular-nums">{{ number_format($table->table_balance, 0) }}</span>
+            <p class="text-lg font-semibold">Bank</p>
+            <span class="font-mono text-lg text-right tabular-nums">{{ number_format($table->bank, 0) }}</span>
         </div>
         <div>
             <p class="text-sm font-semibold text-stone-600 mb-1">All paybacks</p>
@@ -27,9 +29,9 @@
             @else
                 <ul class="text-sm space-y-1">
                     @foreach($table->paybacks as $payback)
-                        <li class="flex justify-between gap-4">
+                        <li class="grid grid-cols-[1fr_auto_auto] gap-4 items-center">
                             <span>{{ $payback->player->name ?? '—' }}</span>
-                            <span class="font-mono">{{ number_format($payback->amount, 0) }}</span>
+                            <span class="font-mono text-right tabular-nums">{{ number_format($payback->amount, 0) }}</span>
                             <span class="text-stone-400">{{ $payback->created_at->timezone('Asia/Tehran')->format('M j, H:i') }}</span>
                         </li>
                     @endforeach
@@ -44,12 +46,59 @@
     @else
         <ul class="space-y-2 mb-6">
             @foreach($table->players as $player)
-                <li class="flex justify-between items-center bg-white rounded border border-stone-200 px-4 py-2">
-                    <span>{{ $player->name }}</span>
-                    <span class="font-mono">{{ number_format($player->amount, 0) }}</span>
+                <li class="grid grid-cols-[1fr_auto] gap-4 items-center bg-white rounded border border-stone-200 px-4 py-2">
+                    <button type="button" onclick="openPlayerModal({{ $player->id }})" class="text-left text-amber-600 hover:underline font-medium cursor-pointer">{{ $player->name }}</button>
+                    <span class="font-mono text-right tabular-nums">{{ number_format($player->amount, 0) }}</span>
                 </li>
             @endforeach
         </ul>
+
+        {{-- Player records modal --}}
+        <div id="player-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden" aria-modal="true">
+            <div class="absolute inset-0 bg-black/50" onclick="closePlayerModal()"></div>
+            <div class="relative bg-white rounded-lg border border-stone-200 shadow-xl max-w-md w-full max-h-[80vh] overflow-hidden flex flex-col">
+                <div class="p-4 border-b border-stone-200 flex items-center justify-between">
+                    <h3 id="player-modal-title" class="text-lg font-semibold"></h3>
+                    <button type="button" onclick="closePlayerModal()" class="text-stone-400 hover:text-stone-600 p-1" aria-label="Close">&times;</button>
+                </div>
+                <div class="p-4 overflow-y-auto flex-1">
+                    @foreach($table->players as $player)
+                        <div id="player-content-{{ $player->id }}" class="player-modal-content hidden" data-player-name="{{ e($player->name) }}">
+                            <p class="text-sm text-stone-500 mb-3">Balance: <span class="font-mono tabular-nums">{{ number_format($player->amount, 0) }}</span></p>
+                            <p class="text-sm font-semibold text-stone-600 mb-1">All records</p>
+                            @if($player->records->isEmpty())
+                                <p class="text-sm text-stone-500">No buy-ins or paybacks yet.</p>
+                            @else
+                                <ul class="space-y-1 text-sm">
+                                    @foreach($player->records as $record)
+                                        <li class="grid grid-cols-[1fr_auto_auto] gap-4 items-center rounded border border-stone-200 px-3 py-2">
+                                            <span class="{{ $record->type === 'buy_in' ? 'text-green-700' : 'text-blue-700' }}">{{ $record->label }}</span>
+                                            <span class="font-mono text-right tabular-nums">{{ number_format($record->amount, 0) }}</span>
+                                            <span class="text-stone-400">{{ $record->created_at->timezone('Asia/Tehran')->format('M j, H:i') }}</span>
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            @endif
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        </div>
+        <script>
+            function openPlayerModal(playerId) {
+                document.querySelectorAll('.player-modal-content').forEach(el => el.classList.add('hidden'));
+                const content = document.getElementById('player-content-' + playerId);
+                const titleEl = document.getElementById('player-modal-title');
+                if (content && titleEl) {
+                    titleEl.textContent = content.getAttribute('data-player-name') || 'Player';
+                    content.classList.remove('hidden');
+                }
+                document.getElementById('player-modal').classList.remove('hidden');
+            }
+            function closePlayerModal() {
+                document.getElementById('player-modal').classList.add('hidden');
+            }
+        </script>
     @endif
 
     @if($isManager)
