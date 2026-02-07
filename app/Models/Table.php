@@ -34,6 +34,6 @@ class Table extends Model
     /** Bank: chips still in play = -table_balance (buy-ins) - paybacks. */
     public function getBankAttribute(): float
     {
-        return (float) (-$this->table_balance - $this->paybacks()->sum('amount'));
+        return (float) ($this->paybacks()->sum('amount'));
     }
 }

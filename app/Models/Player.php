@@ -31,7 +31,7 @@ class Player extends Model
     {
         $buyIns = $this->buyIns()->sum('amount');
         $paybacks = $this->paybacks()->sum('amount');
-        //dd($buyIns, $paybacks);
+        // dd($buyIns, $paybacks);
 
         return (float) ($paybacks + $buyIns);
     }
