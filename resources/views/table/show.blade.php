@@ -15,8 +15,27 @@
         <p class="text-sm text-stone-600 mb-4">View only. Use the manager link to add players or record transactions.</p>
     @endif
 
-    <div class="bg-white rounded-lg border border-stone-200 p-4 mb-6">
-        <p class="text-lg font-semibold">Bank: <span class="font-mono">{{ number_format($table->bank, 2) }}</span></p>
+    <div class="bg-white rounded-lg border border-stone-200 p-4 mb-6 space-y-3">
+        <div class="flex flex-wrap gap-6">
+            <p class="text-lg font-semibold">Table Balance: <span class="font-mono">{{ number_format($table->table_balance, 0) }}</span> <span class="text-sm font-normal text-stone-500">(total buy-ins)</span></p>
+            <p class="text-lg font-semibold">Bank: <span class="font-mono">{{ number_format($table->bank, 0) }}</span></p>
+        </div>
+        <div>
+            <p class="text-sm font-semibold text-stone-600 mb-1">All paybacks</p>
+            @if($table->paybacks->isEmpty())
+                <p class="text-sm text-stone-500">No paybacks yet.</p>
+            @else
+                <ul class="text-sm space-y-1">
+                    @foreach($table->paybacks as $payback)
+                        <li class="flex justify-between gap-4">
+                            <span>{{ $payback->player->name ?? '—' }}</span>
+                            <span class="font-mono">{{ number_format($payback->amount, 0) }}</span>
+                            <span class="text-stone-400">{{ $payback->created_at->format('M j, H:i') }}</span>
+                        </li>
+                    @endforeach
+                </ul>
+            @endif
+        </div>
     </div>
 
     <h2 class="text-lg font-semibold mb-2">Players</h2>
@@ -27,7 +46,7 @@
             @foreach($table->players as $player)
                 <li class="flex justify-between items-center bg-white rounded border border-stone-200 px-4 py-2">
                     <span>{{ $player->name }}</span>
-                    <span class="font-mono">{{ number_format($player->amount, 2) }}</span>
+                    <span class="font-mono">{{ number_format($player->amount, 0) }}</span>
                 </li>
             @endforeach
         </ul>

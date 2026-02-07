@@ -25,7 +25,7 @@ class TableController extends Controller
     public function show(string $token): View|RedirectResponse
     {
         $table = $this->findTable($token);
-        $table->load(['players.buyIns', 'players.paybacks']);
+        $table->load(['players.buyIns', 'players.paybacks', 'paybacks.player']);
 
         return view('table.show', [
             'table' => $table,
@@ -43,7 +43,7 @@ class TableController extends Controller
                 ->with('error', 'Invalid manager link.');
         }
 
-        $table->load(['players.buyIns', 'players.paybacks']);
+        $table->load(['players.buyIns', 'players.paybacks', 'paybacks.player']);
 
         return view('table.show', [
             'table' => $table,

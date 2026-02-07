@@ -26,11 +26,13 @@ class Table extends Model
         return $this->hasMany(Payback::class, 'table_id');
     }
 
+    public function getTableBalanceAttribute(): float
+    {
+        return (float) $this->buyIns()->sum('amount');
+    }
+
     public function getBankAttribute(): float
     {
-        $totalBuyIns = $this->buyIns()->sum('amount');
-        $totalPaybacks = $this->paybacks()->sum('amount');
-
-        return (float) ($totalBuyIns - $totalPaybacks);
+        return (float) ($this->table_balance - $this->paybacks()->sum('amount'));
     }
 }
