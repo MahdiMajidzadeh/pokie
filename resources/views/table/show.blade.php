@@ -50,9 +50,9 @@
     <div class="bg-card rounded border border-border p-4 mb-6 space-y-3">
         <div class="grid grid-cols-[1fr_auto] gap-x-6 gap-y-1 items-baseline max-w-md">
             <p class="text-lg font-semibold">Table Balance <span class="text-sm font-normal text-muted-foreground">(total buy-ins)</span></p>
-            <span class="font-mono text-lg text-right tabular-nums text-accent">{{ number_format(abs($table->table_balance), 0) }}</span>
+            <span class="font-mono text-lg text-right tabular-nums text-accent">{{ number_format(abs($table->table_balance), 1) }}</span>
             <p class="text-lg font-semibold">Bank</p>
-            <span class="font-mono text-lg text-right tabular-nums">{{ number_format($table->bank, 0) }}</span>
+            <span class="font-mono text-lg text-right tabular-nums">{{ number_format($table->bank, 1) }}</span>
         </div>
         <div>
             <p class="text-sm font-semibold text-muted-foreground mb-1">All paybacks</p>
@@ -63,7 +63,7 @@
                     @foreach($table->paybacks as $payback)
                         <li class="grid grid-cols-[1fr_auto_auto] gap-4 items-center">
                             <span>{{ $payback->player->name ?? '—' }}</span>
-                            <span class="font-mono text-right tabular-nums text-accent">+{{ number_format($payback->amount, 0) }}</span>
+                            <span class="font-mono text-right tabular-nums text-accent">+{{ number_format($payback->amount, 1) }}</span>
                             <span class="text-muted-foreground">{{ $payback->created_at->timezone('Asia/Tehran')->format('M j, H:i') }}</span>
                         </li>
                     @endforeach
@@ -80,7 +80,7 @@
             @foreach($table->players as $player)
                 <li class="grid grid-cols-[1fr_auto] gap-4 items-center bg-card rounded border border-border px-4 py-2">
                     <button type="button" onclick="openPlayerModal({{ $player->id }})" class="text-left text-accent hover:underline font-medium cursor-pointer">{{ $player->name }} @if($player->settlements->isNotEmpty())<span class="text-gray-400 text-sm">(Cleared)</span> @endif</button>
-                    <span class="font-mono text-right tabular-nums font-bold">{{ number_format($player->display_amount, 0) }}</span>
+                    <span class="font-mono text-right tabular-nums font-bold">{{ number_format($player->display_amount, 1) }}</span>
                 </li>
             @endforeach
         </ul>
@@ -96,7 +96,7 @@
                 <div class="p-4 overflow-y-auto flex-1">
                     @foreach($table->players as $player)
                         <div id="player-content-{{ $player->id }}" class="player-modal-content hidden" data-player-name="{{ $player->settlements->isNotEmpty() ? '(Cleared) ' : '' }}{{ e($player->name) }}">
-                            <p class="text-sm text-muted-foreground mb-3">Balance + Settlement: <span class="font-mono tabular-nums font-bold">{{ number_format($player->display_amount, 0) }}</span></p>
+                            <p class="text-sm text-muted-foreground mb-3">Balance + Settlement: <span class="font-mono tabular-nums font-bold">{{ number_format($player->display_amount, 1) }}</span></p>
                             <p class="text-sm font-semibold text-muted-foreground mb-1">All records</p>
                             @if($player->records->isEmpty())
                                 <p class="text-sm text-muted-foreground">No records yet.</p>
@@ -105,7 +105,7 @@
                                     @foreach($player->records as $record)
                                         <li class="grid grid-cols-[1fr_auto_auto] gap-4 items-center rounded border border-border px-3 py-2">
                                             <span class="text-accent">{{ $record->label }}</span>
-                                            <span class="font-mono text-right tabular-nums text-accent">{{ $record->amount >= 0 ? '+' : '' }}{{ number_format($record->amount, 0) }}</span>
+                                            <span class="font-mono text-right tabular-nums text-accent">{{ $record->amount >= 0 ? '+' : '' }}{{ number_format($record->amount, 1) }}</span>
                                             <span class="text-muted-foreground">{{ $record->created_at->timezone('Asia/Tehran')->format('M j, H:i') }}</span>
                                         </li>
                                     @endforeach
@@ -236,7 +236,6 @@
                     </div>
                     <button type="submit" class="bg-primary text-primary-foreground px-4 py-2 rounded hover:opacity-90">Add settlement</button>
                 </form>
-                <p class="text-xs text-muted-foreground mt-1">Use positive or negative. Shown as balance + settlement next to player name.</p>
                 @error('player_id')
                     <p class="mt-1 text-sm text-destructive">{{ $message }}</p>
                 @enderror
