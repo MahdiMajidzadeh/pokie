@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\BuyIn;
 use App\Models\Payback;
 use App\Models\Player;
+use App\Models\Settlement;
 use App\Models\Table;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -25,7 +26,7 @@ class TableController extends Controller
     public function show(string $token): View|RedirectResponse
     {
         $table = $this->findTable($token);
-        $table->load(['players.buyIns', 'players.paybacks', 'paybacks.player']);
+        $table->load(['players.buyIns', 'players.paybacks', 'players.settlements', 'paybacks.player']);
 
         return view('table.show', [
             'table' => $table,
@@ -43,7 +44,7 @@ class TableController extends Controller
                 ->with('error', 'Invalid manager link.');
         }
 
-        $table->load(['players.buyIns', 'players.paybacks', 'paybacks.player']);
+        $table->load(['players.buyIns', 'players.paybacks', 'players.settlements', 'paybacks.player']);
 
         return view('table.show', [
             'table' => $table,
@@ -127,5 +128,34 @@ class TableController extends Controller
 
         return redirect()->route('table.manager', ['token' => $token, 'manager_token' => $managerToken])
             ->with('success', 'Payback recorded.');
+    }
+
+    public function storeSettlement(Request $request, string $token, string $managerToken): RedirectResponse
+    {
+        $table = $this->findTable($token);
+
+        if (! $this->ensureManager($table, $managerToken)) {
+            return redirect()->route('table.show', ['token' => $token])
+                ->with('error', 'Invalid manager link.');
+        }
+
+        $validated = $request->validate([
+            'player_id' => ['required', 'exists:players,id'],
+            'amount' => ['required', 'numeric'],
+        ]);
+
+        $player = Player::findOrFail($validated['player_id']);
+        if ($player->table_id !== $table->id) {
+            abort(403);
+        }
+
+        Settlement::create([
+            'table_id' => $table->id,
+            'player_id' => $player->id,
+            'amount' => (float) $validated['amount'],
+        ]);
+
+        return redirect()->route('table.manager', ['token' => $token, 'manager_token' => $managerToken])
+            ->with('success', 'Settlement recorded.');
     }
 }

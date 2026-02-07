@@ -26,6 +26,11 @@ class Table extends Model
         return $this->hasMany(Payback::class, 'table_id');
     }
 
+    public function settlements(): HasMany
+    {
+        return $this->hasMany(Settlement::class, 'table_id');
+    }
+
     public function getTableBalanceAttribute(): float
     {
         return (float) $this->buyIns()->sum('amount');
@@ -34,6 +39,6 @@ class Table extends Model
     /** Bank: chips still in play = -table_balance (buy-ins) - paybacks. */
     public function getBankAttribute(): float
     {
-        return (float) ($this->paybacks()->sum('amount'));
+        return (float) (-$this->table_balance - $this->paybacks()->sum('amount'));
     }
 }

@@ -9,6 +9,8 @@ use Illuminate\Support\Collection;
 
 class Player extends Model
 {
+    protected $with = ['buyIns', 'paybacks', 'settlements'];
+
     protected $fillable = ['table_id', 'name'];
 
     public function table(): BelongsTo
@@ -26,6 +28,11 @@ class Player extends Model
         return $this->hasMany(Payback::class);
     }
 
+    public function settlements(): HasMany
+    {
+        return $this->hasMany(Settlement::class);
+    }
+
     /** Player balance: buy-ins stored negative, paybacks positive. Balance = -buyIns - paybacks. */
     public function getAmountAttribute(): float
     {
@@ -33,7 +40,17 @@ class Player extends Model
         $paybacks = $this->paybacks()->sum('amount');
         // dd($buyIns, $paybacks);
 
-        return (float) ($paybacks + $buyIns);
+        return (float) (-$buyIns - $paybacks);
+    }
+
+    /** Amount shown next to player name: balance + sum of settlements. */
+    public function getDisplayAmountAttribute(): float
+    {
+        $settlementSum = $this->relationLoaded('settlements')
+            ? $this->settlements->sum('amount')
+            : $this->settlements()->sum('amount');
+
+        return (float) ( $settlementSum - $this->amount);
     }
 
     /** @return Collection<int, object{type: string, label: string, amount: float|string, created_at: \Illuminate\Support\Carbon}> */
@@ -51,7 +68,13 @@ class Player extends Model
             'amount' => $p->amount,
             'created_at' => $p->created_at,
         ]);
+        $settlements = $this->settlements->map(fn (Settlement $s) => (object) [
+            'type' => 'settlement',
+            'label' => 'Settlement',
+            'amount' => $s->amount,
+            'created_at' => $s->created_at,
+        ]);
 
-        return $buyIns->concat($paybacks)->sortBy('created_at')->values();
+        return $buyIns->concat($paybacks)->concat($settlements)->sortBy('created_at')->values();
     }
 }
