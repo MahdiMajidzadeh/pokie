@@ -51,6 +51,8 @@
         <div class="grid grid-cols-[1fr_auto] gap-x-6 gap-y-1 items-baseline max-w-md">
             <p class="text-lg font-semibold">Table Balance <span class="text-sm font-normal text-muted-foreground">(total buy-ins)</span></p>
             <span class="font-mono text-lg text-right tabular-nums text-accent">{{ number_format(abs($table->table_balance), 1) }}</span>
+            <p class="text-lg font-semibold">Total Settlement</p>
+            <span class="font-mono text-lg text-right tabular-nums">{{ number_format($table->settlements()->sum('amount') + $table->table_balance , 1) }}</span>
             <p class="text-lg font-semibold">Bank</p>
             <span class="font-mono text-lg text-right tabular-nums">{{ number_format($table->bank, 1) }}</span>
         </div>
