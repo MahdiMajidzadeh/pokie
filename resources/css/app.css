@@ -5,7 +5,99 @@
 @source '../**/*.blade.php';
 @source '../**/*.js';
 
-@theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+:root {
+  --card: #ffffff;
+  --ring: #222222;
+  --input: #eeeeee;
+  --muted: #f5f5f5;
+  --accent: #0099ff;
+  --border: #eeeeee;
+  --radius: 0.5rem;
+  --popover: #ffffff;
+  --primary: #222222;
+  --spacing: 0.5rem;
+  --font-mono: "Menlo", "SFMono-Regular", "Consolas", "Liberation Mono", monospace;
+  --font-sans: "Avenir Next", "Avenir Next W01", "Avenir", "helvetica", "arial", sans-serif;
+  --secondary: #eeeeee;
+  --shadow-lg: 0 12px 24px rgba(34, 34, 34, 0.3);
+  --shadow-md: 0 6px 12px rgba(0, 0, 0, 0.24);
+  --shadow-sm: 0 1.5px 6px rgba(0, 0, 0, 0.24);
+  --shadow-xl: 0 24px 36px rgba(34, 34, 34, 0.3);
+  --background: #ffffff;
+  --foreground: #222222;
+  --destructive: #d0011b;
+  --card-foreground: #222222;
+  --muted-foreground: #999999;
+  --accent-foreground: #ffffff;
+  --popover-foreground: #222222;
+  --primary-foreground: #ffffff;
+  --secondary-foreground: #222222;
+  --destructive-foreground: #ffffff;
+}
+
+.dark {
+  --card: #333333;
+  --ring: #ffffff;
+  --input: #414141;
+  --muted: #414141;
+  --accent: #0099ff;
+  --border: #414141;
+  --popover: #333333;
+  --primary: #ffffff;
+  --secondary: #414141;
+  --background: #222222;
+  --foreground: #ffffff;
+  --destructive: #d0011b;
+  --card-foreground: #ffffff;
+  --muted-foreground: #999999;
+  --accent-foreground: #ffffff;
+  --popover-foreground: #ffffff;
+  --primary-foreground: #222222;
+  --secondary-foreground: #ffffff;
+  --destructive-foreground: #ffffff;
+}
+
+@theme inline {
+  --color-card: var(--card);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-border: var(--border);
+  --color-popover: var(--popover);
+  --color-primary: var(--primary);
+  --color-secondary: var(--secondary);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-destructive: var(--destructive);
+  --color-card-foreground: var(--card-foreground);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --radius: var(--radius);
+  --radius-sm: var(--radius);
+  --radius-md: var(--radius);
+  --radius-lg: var(--radius);
+  --radius-xl: var(--radius);
+  --radius-2xl: var(--radius);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+  --shadow-xl: var(--shadow-xl);
+}
+
+@layer base {
+  button,
+  input,
+  select,
+  textarea,
+  [role="button"],
+  .bg-card {
+    border-radius: var(--radius);
+  }
 }
