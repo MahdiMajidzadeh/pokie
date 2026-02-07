@@ -1,3 +1,6 @@
+/* Webpixels CSS UI Kit - https://webpixels.io/docs/css/v3.0/installation */
+@import '@webpixels/css/dist/all.css';
+
 @import 'tailwindcss';
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';

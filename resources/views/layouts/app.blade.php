@@ -7,35 +7,28 @@
     @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     @else
-        <script src="https://cdn.tailwindcss.com"></script>
-        <script>
-            tailwind.config = {
-                theme: {
-                    extend: {
-                        colors: {
-                            background: '#ffffff', foreground: '#222222', card: '#ffffff', primary: '#222222',
-                            muted: '#f5f5f5', accent: '#0099ff', border: '#eeeeee', destructive: '#d0011b',
-                            'muted-foreground': '#999999', 'primary-foreground': '#ffffff', 'accent-foreground': '#ffffff'
-                        }
-                    }
-                }
-            }
-        </script>
+        <link href="https://cdn.jsdelivr.net/npm/@webpixels/css@3/dist/all.css" rel="stylesheet" crossorigin="anonymous">
     @endif
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" crossorigin="anonymous">
 </head>
-<body class="bg-background min-h-screen text-foreground">
-    <main class="container mx-auto px-4 py-8 max-w-2xl rounded">
+<body class="bg-light min-vh-100">
+    <main class="container py-5" style="max-width: 720px;">
         @if (session('success'))
-            <div class="mb-4 p-3 bg-muted border border-border text-foreground rounded">
-                {{ session('success') }}
+            <div class="alert alert-success alert-dismissible fade show rounded-3 shadow-sm mb-4 d-flex align-items-center justify-content-between" role="alert">
+                <span>{{ session('success') }}</span>
+                <button type="button" class="btn-close" onclick="this.closest('.alert').remove()" aria-label="Close"></button>
             </div>
         @endif
         @if (session('error'))
-            <div class="mb-4 p-3 bg-destructive/10 border border-destructive text-destructive rounded">
-                {{ session('error') }}
+            <div class="alert alert-danger alert-dismissible fade show rounded-3 shadow-sm mb-4 d-flex align-items-center justify-content-between" role="alert">
+                <span>{{ session('error') }}</span>
+                <button type="button" class="btn-close" onclick="this.closest('.alert').remove()" aria-label="Close"></button>
             </div>
         @endif
         @yield('content')
     </main>
+    @if (!file_exists(public_path('build/manifest.json')) && !file_exists(public_path('hot')))
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+    @endif
 </body>
 </html>
