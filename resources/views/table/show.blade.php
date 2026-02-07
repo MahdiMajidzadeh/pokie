@@ -30,7 +30,7 @@
                         <li class="flex justify-between gap-4">
                             <span>{{ $payback->player->name ?? '—' }}</span>
                             <span class="font-mono">{{ number_format($payback->amount, 0) }}</span>
-                            <span class="text-stone-400">{{ $payback->created_at->format('M j, H:i') }}</span>
+                            <span class="text-stone-400">{{ $payback->created_at->timezone('Asia/Tehran')->format('M j, H:i') }}</span>
                         </li>
                     @endforeach
                 </ul>
