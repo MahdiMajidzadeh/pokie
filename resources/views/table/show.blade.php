@@ -64,40 +64,91 @@
         }
     </script>
 
-    {{-- Table balance card --}}
+    {{-- Summary: stat cards --}}
+    @php
+        $totalSettlement = $table->settlements()->sum('amount') + $table->table_balance;
+        $paybacksSum = $table->paybacks->sum('amount');
+    @endphp
+    <div class="row row-cols-1 row-cols-sm-3 g-3 g-base mb-4">
+        <div class="col">
+            <div class="card card-sm border-0 rounded-3 h-100">
+                <div class="card-body">
+                    <div class="h6 text-body-secondary mb-2">Table Balance</div>
+                    <div class="d-flex align-items-center gap-3 gap-md-4">
+                        <div class="flex-grow-1 d-flex gap-3 align-items-center">
+                            <div>
+                                <span class="h2">{{ number_format(abs($table->table_balance), 1) }}</span>
+                            </div>
+                        
+                        </div>
+                        <div class="ms-auto">
+                            <div class="icon text-primary">
+                                <i class="bi bi-cash-coin"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card card-sm border-0 rounded-3 h-100">
+                <div class="card-body">
+                    <div class="h6 text-body-secondary mb-2">Total Settlement</div>
+                    <div class="d-flex align-items-center gap-3 gap-md-4">
+                        <div class="flex-grow-1 d-flex gap-3 align-items-center">
+                            <div>
+                                <span class="h2">{{ number_format($totalSettlement, 1) }}</span>
+                            </div>
+                            
+                        </div>
+                        <div class="ms-auto">
+                            <div class="icon text-primary">
+                                <i class="bi bi-arrow-left-right"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card card-sm border-0 rounded-3 shadow-none h-100">
+                <div class="card-body">
+                    <div class="h6 text-body-secondary mb-2">Bank</div>
+                    <div class="d-flex align-items-center gap-3 gap-md-4">
+                        <div class="flex-grow-1 d-flex gap-3 align-items-center">
+                            <div>
+                                <span class="h2">{{ number_format($table->bank, 1) }}</span>
+                            </div>
+                            
+                        </div>
+                        <div class="ms-auto">
+                            <div class="icon text-primary">
+                                <i class="bi bi-safe"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- All paybacks list --}}
     <div class="card border-0 rounded-3 shadow-sm mb-4">
         <div class="card-body p-4">
-            <h2 class="h6 fw-bold text-body-secondary text-uppercase small mb-3">Summary</h2>
-            <div class="row g-3 mb-4">
-                <div class="col-sm-4">
-                    <p class="small text-body-secondary mb-0">Table Balance <span class="text-muted">(total buy-ins)</span></p>
-                    <p class="fw-bold fs-5 text-primary mb-0">{{ number_format(abs($table->table_balance), 1) }}</p>
-                </div>
-                <div class="col-sm-4">
-                    <p class="small text-body-secondary mb-0">Total Settlement</p>
-                    <p class="fw-bold fs-5 mb-0">{{ number_format($table->settlements()->sum('amount') + $table->table_balance, 1) }}</p>
-                </div>
-                <div class="col-sm-4">
-                    <p class="small text-body-secondary mb-0">Bank</p>
-                    <p class="fw-bold fs-5 mb-0">{{ number_format($table->bank, 1) }}</p>
-                </div>
-            </div>
-            <div>
-                <p class="small fw-semibold text-body-secondary mb-2">All paybacks</p>
-                @if($table->paybacks->isEmpty())
-                    <p class="small text-body-secondary mb-0">No paybacks yet.</p>
-                @else
-                    <ul class="list-unstyled small mb-0">
-                        @foreach($table->paybacks as $payback)
-                            <li class="d-flex justify-content-between align-items-center py-2 border-bottom border-light">
-                                <span>{{ $payback->player->name ?? '—' }}</span>
-                                <span class="text-primary fw-medium">+{{ number_format($payback->amount, 1) }}</span>
-                                <span class="text-body-secondary">{{ $payback->created_at->timezone('Asia/Tehran')->format('M j, H:i') }}</span>
-                            </li>
-                        @endforeach
-                    </ul>
-                @endif
-            </div>
+            <p class="h6 text-body-secondary mb-2">All paybacks</p>
+            @if($table->paybacks->isEmpty())
+                <p class="small text-body-secondary mb-0">No paybacks yet.</p>
+            @else
+                <ul class="list-unstyled small mb-0">
+                    @foreach($table->paybacks as $payback)
+                        <li class="d-flex justify-content-between align-items-center py-2 border-bottom border-light">
+                            <span>{{ $payback->player->name ?? '—' }}</span>
+                            <span class="text-primary fw-medium">+{{ number_format($payback->amount, 1) }}</span>
+                            <span class="text-body-secondary">{{ $payback->created_at->timezone('Asia/Tehran')->format('M j, H:i') }}</span>
+                        </li>
+                    @endforeach
+                </ul>
+            @endif
         </div>
     </div>
 
@@ -120,7 +171,7 @@
                 <div class="list-group list-group-flush">
                     @foreach($table->players as $player)
                         <button type="button" onclick="openPlayerModal({{ $player->id }})" class="list-group-item list-group-item-action border-0 border-bottom d-flex align-items-center justify-content-between gap-3 gap-md-4 py-3 px-4 text-start">
-                            <div class="d-flex align-items-center gap-3">
+                            <div class="d-flex align-items-center gap-3 col-4">
                                 <div class="rounded flex-shrink-0 d-flex align-items-center justify-content-center bg-body-secondary text-body-emphasis border shadow-sm" style="width:2.5rem;height:2.5rem;">
                                     <i class="bi bi-person-fill small"></i>
                                 </div>
@@ -261,7 +312,7 @@
                 </div>
             </div>
 
-            <div class="card border-0 rounded-3 shadow-sm mb-4">
+            <div class="card border-0 rounded-3 shadow-0 mb-4">
                 <div class="card-body p-4">
                     <h3 class="h6 fw-bold mb-3">Record payback to bank</h3>
                     @if($table->players->isEmpty())
@@ -292,7 +343,7 @@
                 </div>
             </div>
 
-            <div class="card border-0 rounded-3 shadow-sm mb-4">
+            <div class="card border-0 rounded-3 shadow-0 mb-4">
                 <div class="card-body p-4">
                     <h3 class="h6 fw-bold mb-3">Record settlement</h3>
                     @if($table->players->isEmpty())

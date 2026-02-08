@@ -14,16 +14,16 @@
 <body class="bg-light min-vh-100">
     <main class="container py-5" style="max-width: 720px;">
         @if (session('success'))
-            <div class="alert alert-success alert-dismissible fade show rounded-3 shadow-sm mb-4 d-flex align-items-center justify-content-between" role="alert">
+            <div class="alert alert-success alert-dismissible fade show rounded-3 shadow-0 border-0 mb-4 d-flex align-items-center justify-content-between" role="alert">
                 <span>{{ session('success') }}</span>
                 <button type="button" class="btn-close" onclick="this.closest('.alert').remove()" aria-label="Close"></button>
             </div>
         @endif
         @if (session('error'))
-            <div class="alert alert-danger alert-dismissible fade show rounded-3 shadow-sm mb-4 d-flex align-items-center justify-content-between" role="alert">
+            <div class="alert alert-danger alert-dismissible fade show rounded-3 shadow-0 border-0 mb-4 d-flex align-items-center justify-content-between" role="alert">
                 <span>{{ session('error') }}</span>
                 <button type="button" class="btn-close" onclick="this.closest('.alert').remove()" aria-label="Close"></button>
-            </div>
+            </div> 
         @endif
         @yield('content')
     </main>
