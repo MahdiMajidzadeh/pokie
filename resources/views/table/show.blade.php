@@ -111,7 +111,7 @@
             </div>
         </div>
         <div class="col">
-            <div class="card card-sm border-0 rounded-3 shadow-none h-100">
+            <div class="card card-sm border-0 rounded-3 shadow-sm h-100" role="button" tabindex="0" onclick="openPaybacksModal()" onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); openPaybacksModal(); }" style="cursor: pointer;">
                 <div class="card-body">
                     <div class="h6 text-body-secondary mb-2">Bank</div>
                     <div class="d-flex align-items-center gap-3 gap-md-4">
@@ -119,7 +119,6 @@
                             <div>
                                 <span class="h2">{{ number_format($table->bank, 1) }}</span>
                             </div>
-                            
                         </div>
                         <div class="ms-auto">
                             <div class="icon text-primary">
@@ -132,25 +131,41 @@
         </div>
     </div>
 
-    {{-- All paybacks list --}}
-    <div class="card border-0 rounded-3 shadow-sm mb-4">
-        <div class="card-body p-4">
-            <p class="h6 text-body-secondary mb-2">All paybacks</p>
-            @if($table->paybacks->isEmpty())
-                <p class="small text-body-secondary mb-0">No paybacks yet.</p>
-            @else
-                <ul class="list-unstyled small mb-0">
-                    @foreach($table->paybacks as $payback)
-                        <li class="d-flex justify-content-between align-items-center py-2 border-bottom border-light">
-                            <span>{{ $payback->player->name ?? '—' }}</span>
-                            <span class="text-primary fw-medium">+{{ number_format($payback->amount, 1) }}</span>
-                            <span class="text-body-secondary">{{ $payback->created_at->timezone('Asia/Tehran')->format('M j, H:i') }}</span>
-                        </li>
-                    @endforeach
-                </ul>
-            @endif
+    {{-- All paybacks modal (opened by clicking Bank card) --}}
+    <div id="paybacks-modal" class="d-none position-fixed top-0 start-0 w-100 h-100 align-items-center justify-content-center p-3" style="z-index: 1050; background: rgba(0,0,0,0.5);">
+        <div class="bg-white rounded-3 shadow position-relative w-100" style="max-width: 420px; max-height: 85vh; overflow: hidden; display: flex; flex-direction: column;">
+            <div class="d-flex align-items-center justify-content-between p-4 border-bottom">
+                <h3 class="h5 fw-bold mb-0">All paybacks</h3>
+                <button type="button" onclick="closePaybacksModal()" class="btn btn-link text-body-secondary p-0" style="font-size: 1.5rem; line-height: 1;" aria-label="Close">&times;</button>
+            </div>
+            <div class="p-4 overflow-auto flex-grow-1">
+                @if($table->paybacks->isEmpty())
+                    <p class="small text-body-secondary mb-0">No paybacks yet.</p>
+                @else
+                    <ul class="list-unstyled small mb-0">
+                        @foreach($table->paybacks as $payback)
+                            <li class="d-flex justify-content-between align-items-center py-2 border-bottom border-light">
+                                <span>{{ $payback->player->name ?? '—' }}</span>
+                                <span class="text-primary fw-medium">+{{ number_format($payback->amount, 1) }}</span>
+                                <span class="text-body-secondary">{{ $payback->created_at->timezone('Asia/Tehran')->format('M j, H:i') }}</span>
+                            </li>
+                        @endforeach
+                    </ul>
+                @endif
+            </div>
         </div>
     </div>
+    <script>
+        function openPaybacksModal() {
+            var modal = document.getElementById('paybacks-modal');
+            if (modal) { modal.classList.remove('d-none'); modal.classList.add('d-flex'); }
+        }
+        function closePaybacksModal() {
+            var modal = document.getElementById('paybacks-modal');
+            if (modal) { modal.classList.add('d-none'); modal.classList.remove('d-flex'); }
+        }
+        document.getElementById('paybacks-modal').addEventListener('click', function(e) { if (e.target === this) closePaybacksModal(); });
+    </script>
 
     {{-- Players --}}
     @if($table->players->isEmpty())
@@ -181,7 +196,7 @@
                                     </span>
                                 </div>
                             </div>
-                            <div class="d-none d-md-block">
+                            <div class="">
                                 @if($player->settlements->isNotEmpty())
                                     <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill">
                                         Cleared
