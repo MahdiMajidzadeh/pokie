@@ -24,4 +24,32 @@
             </form>
         </div>
     </div>
+
+    @if(!empty($recentTables))
+        <div class="card border-0 rounded-3 shadow-sm mb-4">
+            <div class="card-header bg-transparent border-0 pt-0 pb-1 px-4 pt-4">
+                <h2 class="h6 fw-bold text-body-secondary text-uppercase small mb-0">Last opened tables</h2>
+            </div>
+            <div class="card-body py-0 px-0">
+                <ul class="list-group list-group-flush">
+                    @foreach($recentTables as $recent)
+                        <li class="list-group-item border-0 border-bottom d-flex align-items-center justify-content-between gap-2 py-3 px-4">
+                            <a href="{{ route('table.show', ['token' => $recent['token'] ?? '']) }}" class="text-body-emphasis fw-semibold text-decoration-none d-flex align-items-center gap-2">
+                                <i class="bi bi-currency-dollar text-primary"></i>
+                                {{ $recent['name'] ?? 'Table' }}
+                            </a>
+                            <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                                <a href="{{ route('table.show', ['token' => $recent['token'] ?? '']) }}" class="btn btn-sm btn-light rounded-3">View</a>
+                                @if(!empty($recent['manager_token']))
+                                    <a href="{{ route('table.manager', ['token' => $recent['token'] ?? '', 'manager_token' => $recent['manager_token']]) }}" class="btn btn-sm btn-primary rounded-3">
+                                        <i class="bi bi-key me-1"></i>Manager
+                                    </a>
+                                @endif
+                            </div>
+                        </li>
+                    @endforeach
+                </ul>
+            </div>
+        </div>
+    @endif
 @endsection

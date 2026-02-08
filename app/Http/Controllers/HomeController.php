@@ -10,9 +10,15 @@ use Illuminate\View\View;
 
 class HomeController extends Controller
 {
-    public function index(): View
+    private const RECENT_TABLES_COOKIE = 'pokie_recent_tables';
+
+    public function index(Request $request): View
     {
-        return view('home');
+        $recentTables = json_decode($request->cookie(self::RECENT_TABLES_COOKIE, '[]'), true) ?: [];
+
+        return view('home', [
+            'recentTables' => $recentTables,
+        ]);
     }
 
     public function store(Request $request): RedirectResponse
