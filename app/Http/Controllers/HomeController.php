@@ -23,6 +23,19 @@ class HomeController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
+        // #region agent log
+        $dbPath = config('database.connections.sqlite.database');
+        $dir = dirname($dbPath);
+        $fileExists = file_exists($dbPath);
+        $dirExists = is_dir($dir);
+        $fileWritable = $fileExists && is_writable($dbPath);
+        $dirWritable = $dirExists && is_writable($dir);
+        $filePerms = $fileExists ? substr(sprintf('%o', fileperms($dbPath)), -4) : null;
+        $dirPerms = $dirExists ? substr(sprintf('%o', fileperms($dir)), -4) : null;
+        $logPath = base_path('.cursor/debug.log');
+        @file_put_contents($logPath, json_encode(['id' => 'db_check', 'timestamp' => (int) (microtime(true) * 1000), 'location' => __FILE__ . ':' . __LINE__, 'message' => 'SQLite path and permissions before create', 'data' => ['db_path' => $dbPath, 'dir' => $dir, 'file_exists' => $fileExists, 'dir_exists' => $dirExists, 'file_writable' => $fileWritable, 'dir_writable' => $dirWritable, 'file_perms' => $filePerms, 'dir_perms' => $dirPerms], 'hypothesisId' => 'H1-H5']) . "\n", FILE_APPEND | LOCK_EX);
+        // #endregion
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
         ]);
