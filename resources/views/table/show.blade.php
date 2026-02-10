@@ -388,6 +388,206 @@
                     @error('amount')<p class="mt-1 small text-danger mb-0">{{ $message }}</p>@enderror
                 </div>
             </div>
+
+            {{-- Activity log: buy-ins, paybacks, settlements --}}
+            <div class="card border-0 rounded-3 shadow-sm mb-4">
+                <div class="card-header bg-transparent border-0 pt-0 pb-1 px-4 pt-4">
+                    <h5 class="fw-bold mb-0">Activity log</h5>
+                    <p class="text-body-secondary small mt-1 mb-0">
+                        All buy-ins, paybacks and settlements. You can delete a log to correct mistakes.
+                    </p>
+                </div>
+                <div class="card-body px-0 pb-4">
+                    @if(isset($logs) && $logs->isNotEmpty())
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th class="border-0 ps-4 small fw-semibold text-body-secondary">Type</th>
+                                        <th class="border-0 small fw-semibold text-body-secondary">Player</th>
+                                        <th class="border-0 small fw-semibold text-body-secondary text-end">Amount</th>
+                                        <th class="border-0 small fw-semibold text-body-secondary">Date</th>
+                                        <th class="border-0 pe-4 small fw-semibold text-body-secondary text-end">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($logs as $log)
+                                        @php
+                                            $logFormId = 'log-delete-form-' . $log->type . '-' . $log->id;
+                                            $logLabel = $log->type === 'buy_in' ? 'Buy-in' : ($log->type === 'payback' ? 'Payback' : 'Settlement');
+                                            $logAmountDisplay = ($log->amount >= 0 ? '+' : '') . number_format($log->amount, 1);
+                                        @endphp
+                                        <tr>
+                                            <td class="ps-4">
+                                                @if($log->type === 'buy_in')
+                                                    <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25">Buy-in</span>
+                                                @elseif($log->type === 'payback')
+                                                    <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25">Payback</span>
+                                                @else
+                                                    <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25">Settlement</span>
+                                                @endif
+                                            </td>
+                                            <td>{{ $log->player_name }}</td>
+                                            <td class="text-end fw-medium">{{ $logAmountDisplay }}</td>
+                                            <td class="small text-body-secondary">{{ $log->created_at->timezone('Asia/Tehran')->format('M j, Y H:i') }}</td>
+                                            <td class="pe-4 text-end">
+                                                @if($log->type === 'buy_in')
+                                                    <form id="{{ $logFormId }}" action="{{ route('table.buy-ins.destroy', ['token' => $table->token, 'manager_token' => $managerToken, 'id' => $log->id]) }}" method="POST" class="d-inline log-delete-form">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button
+                                                            type="button"
+                                                            class="btn btn-sm btn-outline-danger log-delete-button"
+                                                            data-form-id="{{ $logFormId }}"
+                                                            data-log-type="{{ $log->type }}"
+                                                            data-log-label="{{ $logLabel }}"
+                                                            data-log-player="{{ $log->player_name }}"
+                                                            data-log-amount="{{ $logAmountDisplay }}"
+                                                            aria-label="Delete"
+                                                        >
+                                                            Delete
+                                                        </button>
+                                                    </form>
+                                                @elseif($log->type === 'payback')
+                                                    <form id="{{ $logFormId }}" action="{{ route('table.paybacks.destroy', ['token' => $table->token, 'manager_token' => $managerToken, 'id' => $log->id]) }}" method="POST" class="d-inline log-delete-form">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button
+                                                            type="button"
+                                                            class="btn btn-sm btn-outline-danger log-delete-button"
+                                                            data-form-id="{{ $logFormId }}"
+                                                            data-log-type="{{ $log->type }}"
+                                                            data-log-label="{{ $logLabel }}"
+                                                            data-log-player="{{ $log->player_name }}"
+                                                            data-log-amount="{{ $logAmountDisplay }}"
+                                                            aria-label="Delete"
+                                                        >
+                                                            Delete
+                                                        </button>
+                                                    </form>
+                                                @else
+                                                    <form id="{{ $logFormId }}" action="{{ route('table.settlements.destroy', ['token' => $table->token, 'manager_token' => $managerToken, 'id' => $log->id]) }}" method="POST" class="d-inline log-delete-form">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button
+                                                            type="button"
+                                                            class="btn btn-sm btn-outline-danger log-delete-button"
+                                                            data-form-id="{{ $logFormId }}"
+                                                            data-log-type="{{ $log->type }}"
+                                                            data-log-label="{{ $logLabel }}"
+                                                            data-log-player="{{ $log->player_name }}"
+                                                            data-log-amount="{{ $logAmountDisplay }}"
+                                                            aria-label="Delete"
+                                                        >
+                                                            Delete
+                                                        </button>
+                                                    </form>
+                                                @endif
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @else
+                        <p class="small text-body-secondary mb-0 ps-4">No activity yet.</p>
+                    @endif
+                </div>
+            </div>
+
+            {{-- Log delete confirmation modal --}}
+            <div id="log-delete-modal" class="d-none position-fixed top-0 start-0 w-100 h-100 align-items-center justify-content-center p-3" style="z-index: 1060; background: rgba(0,0,0,0.5);">
+                <div class="bg-white rounded-3 shadow position-relative w-100" style="max-width: 420px; max-height: 85vh; overflow: hidden;">
+                    <div class="d-flex align-items-center justify-content-between p-4 border-bottom">
+                        <h3 class="h5 fw-bold mb-0">Delete log</h3>
+                        <button type="button" id="log-delete-close-btn" class="btn btn-link text-body-secondary p-0" style="font-size: 1.5rem; line-height: 1;" aria-label="Close">&times;</button>
+                    </div>
+                    <div class="p-4">
+                        <p class="small mb-2">You are about to delete this log:</p>
+                        <p class="small mb-2">
+                            <span class="fw-semibold" id="log-delete-type"></span>
+                            for <span class="fw-semibold" id="log-delete-player"></span>
+                            (<span class="fw-semibold" id="log-delete-amount"></span>)
+                        </p>
+                        <p class="small text-body-secondary mb-3">This action cannot be undone.</p>
+                        <div class="d-flex justify-content-end gap-2">
+                            <button type="button" class="btn btn-sm btn-outline-secondary" id="log-delete-cancel-btn">Cancel</button>
+                            <button type="button" class="btn btn-sm btn-danger" id="log-delete-confirm-btn">Delete</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <script>
+                (function () {
+                    var modal = document.getElementById('log-delete-modal');
+                    if (!modal) return;
+
+                    var typeEl = document.getElementById('log-delete-type');
+                    var playerEl = document.getElementById('log-delete-player');
+                    var amountEl = document.getElementById('log-delete-amount');
+                    var confirmBtn = document.getElementById('log-delete-confirm-btn');
+                    var cancelBtn = document.getElementById('log-delete-cancel-btn');
+                    var closeBtn = document.getElementById('log-delete-close-btn');
+                    var currentFormId = null;
+
+                    function openLogDeleteModal(button) {
+                        currentFormId = button.getAttribute('data-form-id');
+                        if (typeEl) typeEl.textContent = button.getAttribute('data-log-label') || '';
+                        if (playerEl) playerEl.textContent = button.getAttribute('data-log-player') || '';
+                        if (amountEl) amountEl.textContent = button.getAttribute('data-log-amount') || '';
+                        modal.classList.remove('d-none');
+                        modal.classList.add('d-flex');
+                    }
+
+                    function closeLogDeleteModal() {
+                        currentFormId = null;
+                        modal.classList.add('d-none');
+                        modal.classList.remove('d-flex');
+                    }
+
+                    document.querySelectorAll('.log-delete-button').forEach(function (btn) {
+                        btn.addEventListener('click', function () {
+                            openLogDeleteModal(btn);
+                        });
+                    });
+
+                    if (cancelBtn) {
+                        cancelBtn.addEventListener('click', function (e) {
+                            e.preventDefault();
+                            closeLogDeleteModal();
+                        });
+                    }
+
+                    if (closeBtn) {
+                        closeBtn.addEventListener('click', function (e) {
+                            e.preventDefault();
+                            closeLogDeleteModal();
+                        });
+                    }
+
+                    if (confirmBtn) {
+                        confirmBtn.addEventListener('click', function (e) {
+                            e.preventDefault();
+                            if (!currentFormId) {
+                                closeLogDeleteModal();
+                                return;
+                            }
+                            var form = document.getElementById(currentFormId);
+                            if (form) {
+                                form.submit();
+                            }
+                            closeLogDeleteModal();
+                        });
+                    }
+
+                    modal.addEventListener('click', function (e) {
+                        if (e.target === modal) {
+                            closeLogDeleteModal();
+                        }
+                    });
+                })();
+            </script>
         </div>
     @endif
 @endsection

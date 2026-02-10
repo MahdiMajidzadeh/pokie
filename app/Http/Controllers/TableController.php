@@ -67,14 +67,43 @@ class TableController extends Controller
                 ->with('error', 'Invalid manager link.');
         }
 
-        $table->load(['players.buyIns', 'players.paybacks', 'players.settlements', 'paybacks.player']);
+        $table->load(['players.buyIns', 'players.paybacks', 'players.settlements', 'paybacks.player', 'buyIns.player', 'settlements.player']);
 
         $this->pushRecentTableCookie($request, $table, $managerToken);
+
+        $logs = collect()
+            ->merge($table->buyIns->map(fn (BuyIn $b) => (object) [
+                'type' => 'buy_in',
+                'label' => 'Buy-in',
+                'id' => $b->id,
+                'player_name' => $b->player->name ?? '—',
+                'amount' => $b->amount,
+                'created_at' => $b->created_at,
+            ]))
+            ->merge($table->paybacks->map(fn (Payback $p) => (object) [
+                'type' => 'payback',
+                'label' => 'Payback',
+                'id' => $p->id,
+                'player_name' => $p->player->name ?? '—',
+                'amount' => $p->amount,
+                'created_at' => $p->created_at,
+            ]))
+            ->merge($table->settlements->map(fn (Settlement $s) => (object) [
+                'type' => 'settlement',
+                'label' => 'Settlement',
+                'id' => $s->id,
+                'player_name' => $s->player->name ?? '—',
+                'amount' => $s->amount,
+                'created_at' => $s->created_at,
+            ]))
+            ->sortByDesc('created_at')
+            ->values();
 
         return view('table.show', [
             'table' => $table,
             'isManager' => true,
             'managerToken' => $managerToken,
+            'logs' => $logs,
         ]);
     }
 
@@ -182,5 +211,41 @@ class TableController extends Controller
 
         return redirect()->route('table.manager', ['token' => $token, 'manager_token' => $managerToken])
             ->with('success', 'Settlement recorded.');
+    }
+
+    public function destroyBuyIn(string $token, string $managerToken, int $id): RedirectResponse
+    {
+        $table = $this->findTable($token);
+        if (! $this->ensureManager($table, $managerToken)) {
+            return redirect()->route('table.show', ['token' => $token])->with('error', 'Invalid manager link.');
+        }
+        $buyIn = BuyIn::where('table_id', $table->id)->findOrFail($id);
+        $buyIn->delete();
+        return redirect()->route('table.manager', ['token' => $token, 'manager_token' => $managerToken])
+            ->with('success', 'Buy-in deleted.');
+    }
+
+    public function destroyPayback(string $token, string $managerToken, int $id): RedirectResponse
+    {
+        $table = $this->findTable($token);
+        if (! $this->ensureManager($table, $managerToken)) {
+            return redirect()->route('table.show', ['token' => $token])->with('error', 'Invalid manager link.');
+        }
+        $payback = Payback::where('table_id', $table->id)->findOrFail($id);
+        $payback->delete();
+        return redirect()->route('table.manager', ['token' => $token, 'manager_token' => $managerToken])
+            ->with('success', 'Payback deleted.');
+    }
+
+    public function destroySettlement(string $token, string $managerToken, int $id): RedirectResponse
+    {
+        $table = $this->findTable($token);
+        if (! $this->ensureManager($table, $managerToken)) {
+            return redirect()->route('table.show', ['token' => $token])->with('error', 'Invalid manager link.');
+        }
+        $settlement = Settlement::where('table_id', $table->id)->findOrFail($id);
+        $settlement->delete();
+        return redirect()->route('table.manager', ['token' => $token, 'manager_token' => $managerToken])
+            ->with('success', 'Settlement deleted.');
     }
 }
