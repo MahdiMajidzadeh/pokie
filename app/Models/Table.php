@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Collection;
 
 class Table extends Model
 {
@@ -40,5 +41,50 @@ class Table extends Model
     public function getBankAttribute(): float
     {
         return (float) ($this->paybacks()->sum('amount'));
+    }
+
+    /**
+     * Minimum transactions to settle all player balances.
+     * From = player with negative balance (owes), To = player with positive balance (is owed).
+     *
+     * @return Collection<int, object{from: Player, to: Player, amount: float}>
+     */
+    public function getMinimumSettlementTransactions(): Collection
+    {
+        $players = $this->relationLoaded('players') ? $this->players : $this->players()->get();
+        $debtors = $players->filter(fn (Player $p) => $p->display_amount < -0.001)
+            ->map(fn (Player $p) => ['player' => $p, 'amount' => -$p->display_amount])
+            ->sortByDesc('amount')
+            ->values()
+            ->all();
+        $creditors = $players->filter(fn (Player $p) => $p->display_amount > 0.001)
+            ->map(fn (Player $p) => ['player' => $p, 'amount' => $p->display_amount])
+            ->sortByDesc('amount')
+            ->values()
+            ->all();
+
+        $transactions = [];
+        $di = 0;
+        $ci = 0;
+        while ($di < count($debtors) && $ci < count($creditors)) {
+            $transfer = min($debtors[$di]['amount'], $creditors[$ci]['amount']);
+            if ($transfer > 0.001) {
+                $transactions[] = (object) [
+                    'from' => $debtors[$di]['player'],
+                    'to' => $creditors[$ci]['player'],
+                    'amount' => round($transfer, 2),
+                ];
+            }
+            $debtors[$di]['amount'] -= $transfer;
+            $creditors[$ci]['amount'] -= $transfer;
+            if ($debtors[$di]['amount'] < 0.001) {
+                $di++;
+            }
+            if ($creditors[$ci]['amount'] < 0.001) {
+                $ci++;
+            }
+        }
+
+        return collect($transactions);
     }
 }

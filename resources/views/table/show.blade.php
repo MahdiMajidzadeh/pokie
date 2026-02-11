@@ -69,7 +69,7 @@
         $totalSettlement = $table->settlements()->sum('amount') + $table->table_balance;
         $paybacksSum = $table->paybacks->sum('amount');
     @endphp
-    <div class="row row-cols-1 row-cols-sm-3 g-3 g-base mb-4">
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-4 g-3 g-base mb-4">
         <div class="col">
             <div class="card card-sm border-0 rounded-3 h-100">
                 <div class="card-body">
@@ -129,6 +129,25 @@
                 </div>
             </div>
         </div>
+        <div class="col">
+            <div class="card card-sm border-0 rounded-3 shadow-sm h-100" role="button" tabindex="0" onclick="openWithdrawModal()" onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); openWithdrawModal(); }" style="cursor: pointer;">
+                <div class="card-body">
+                    <div class="h6 text-body-secondary mb-2">Withdraw</div>
+                    <div class="d-flex align-items-center gap-3 gap-md-4">
+                        <div class="flex-grow-1 d-flex gap-3 align-items-center">
+                            <div>
+                                <span class="h6 fw-semibold text-primary">Settle up</span>
+                            </div>
+                        </div>
+                        <div class="ms-auto">
+                            <div class="icon text-primary">
+                                <i class="bi bi-cash-stack"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     {{-- All paybacks modal (opened by clicking Bank card) --}}
@@ -165,6 +184,57 @@
             if (modal) { modal.classList.add('d-none'); modal.classList.remove('d-flex'); }
         }
         document.getElementById('paybacks-modal').addEventListener('click', function(e) { if (e.target === this) closePaybacksModal(); });
+    </script>
+
+    {{-- Withdraw modal (minimum transactions to settle up) --}}
+    @php
+        $withdrawTransactions = $table->getMinimumSettlementTransactions();
+    @endphp
+    <div id="withdraw-modal" class="d-none position-fixed top-0 start-0 w-100 h-100 align-items-center justify-content-center p-3" style="z-index: 1050; background: rgba(0,0,0,0.5);">
+        <div class="bg-white rounded-3 shadow position-relative w-100" style="max-width: 520px; max-height: 85vh; overflow: hidden; display: flex; flex-direction: column;">
+            <div class="d-flex align-items-center justify-content-between p-4 border-bottom">
+                <h3 class="h5 fw-bold mb-0">Withdraw options</h3>
+                <button type="button" onclick="closeWithdrawModal()" class="btn btn-link text-body-secondary p-0" style="font-size: 1.5rem; line-height: 1;" aria-label="Close">&times;</button>
+            </div>
+            <div class="p-4 overflow-auto flex-grow-1">
+                @if($withdrawTransactions->isEmpty())
+                    <p class="small text-body-secondary mb-0">No payments needed. All balances are settled.</p>
+                @else
+                    <p class="small text-body-secondary mb-3">Minimum transactions to settle all balances:</p>
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="border-0 small fw-semibold text-body-secondary">From</th>
+                                    <th class="border-0 small fw-semibold text-body-secondary">To</th>
+                                    <th class="border-0 small fw-semibold text-body-secondary text-end">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($withdrawTransactions as $tx)
+                                    <tr>
+                                        <td class="small">{{ $tx->from->name }}</td>
+                                        <td class="small">{{ $tx->to->name }}</td>
+                                        <td class="small text-end fw-medium">{{ number_format($tx->amount, 1) }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @endif
+            </div>
+        </div>
+    </div>
+    <script>
+        function openWithdrawModal() {
+            var modal = document.getElementById('withdraw-modal');
+            if (modal) { modal.classList.remove('d-none'); modal.classList.add('d-flex'); }
+        }
+        function closeWithdrawModal() {
+            var modal = document.getElementById('withdraw-modal');
+            if (modal) { modal.classList.add('d-none'); modal.classList.remove('d-flex'); }
+        }
+        document.getElementById('withdraw-modal').addEventListener('click', function(e) { if (e.target === this) closeWithdrawModal(); });
     </script>
 
     {{-- Players --}}
