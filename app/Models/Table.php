@@ -44,7 +44,7 @@ class Table extends Model
     }
 
     /**
-     * Minimum transactions to settle all player balances.
+     * Minimum transactions to settle all player balances (backtracking for true minimum).
      * From = player with negative balance (owes), To = player with positive balance (is owed).
      *
      * @return Collection<int, object{from: Player, to: Player, amount: float}>
@@ -52,39 +52,82 @@ class Table extends Model
     public function getMinimumSettlementTransactions(): Collection
     {
         $players = $this->relationLoaded('players') ? $this->players : $this->players()->get();
-        $debtors = $players->filter(fn (Player $p) => $p->display_amount < -0.001)
-            ->map(fn (Player $p) => ['player' => $p, 'amount' => -$p->display_amount])
-            ->sortByDesc('amount')
-            ->values()
-            ->all();
-        $creditors = $players->filter(fn (Player $p) => $p->display_amount > 0.001)
-            ->map(fn (Player $p) => ['player' => $p, 'amount' => $p->display_amount])
-            ->sortByDesc('amount')
-            ->values()
-            ->all();
-
-        $transactions = [];
-        $di = 0;
-        $ci = 0;
-        while ($di < count($debtors) && $ci < count($creditors)) {
-            $transfer = min($debtors[$di]['amount'], $creditors[$ci]['amount']);
-            if ($transfer > 0.001) {
-                $transactions[] = (object) [
-                    'from' => $debtors[$di]['player'],
-                    'to' => $creditors[$ci]['player'],
-                    'amount' => round($transfer, 2),
-                ];
-            }
-            $debtors[$di]['amount'] -= $transfer;
-            $creditors[$ci]['amount'] -= $transfer;
-            if ($debtors[$di]['amount'] < 0.001) {
-                $di++;
-            }
-            if ($creditors[$ci]['amount'] < 0.001) {
-                $ci++;
+        $debt = [];
+        $playerMap = [];
+        foreach ($players as $p) {
+            $bal = $p->display_amount;
+            if (abs($bal) > 0.001) {
+                $debt[] = $bal;
+                $playerMap[] = $p;
             }
         }
 
-        return collect($transactions);
+        $bestTransactions = [];
+        $minCount = PHP_INT_MAX;
+        $this->dfsMinTransactions($debt, 0, [], $playerMap, $bestTransactions, $minCount);
+
+        return collect($bestTransactions);
+    }
+
+    /**
+     * Backtracking DFS to find minimum number of transactions.
+     *
+     * @param  array<int, float>  $debt
+     * @param  array<int, object{from: Player, to: Player, amount: float}>  $current
+     * @param  array<int, Player>  $playerMap
+     * @param  array<int, object{from: Player, to: Player, amount: float}>  $bestTransactions
+     */
+    private function dfsMinTransactions(
+        array $debt,
+        int $s,
+        array $current,
+        array $playerMap,
+        array &$bestTransactions,
+        int &$minCount
+    ): void {
+        $n = count($debt);
+        while ($s < $n && abs($debt[$s]) < 0.001) {
+            $s++;
+        }
+
+        if ($s >= $n) {
+            if (count($current) < $minCount) {
+                $minCount = count($current);
+                $bestTransactions = $current;
+            }
+            return;
+        }
+
+        $prev = 0.0;
+        for ($i = $s + 1; $i < $n; $i++) {
+            if (abs($debt[$i]) < 0.001) {
+                continue;
+            }
+            if ($debt[$s] * $debt[$i] >= 0) {
+                continue;
+            }
+            if (abs($debt[$i] - $prev) < 0.001) {
+                continue;
+            }
+            if (count($current) + 1 >= $minCount) {
+                continue;
+            }
+            $transfer = min(abs($debt[$s]), abs($debt[$i]));
+            $debt[$i] += $debt[$s];
+            $debtor = $debt[$s] < 0 ? $playerMap[$s] : $playerMap[$i];
+            $creditor = $debt[$s] < 0 ? $playerMap[$i] : $playerMap[$s];
+            $current[] = (object) [
+                'from' => $debtor,
+                'to' => $creditor,
+                'amount' => round($transfer, 2),
+            ];
+            $this->dfsMinTransactions($debt, $s + 1, $current, $playerMap, $bestTransactions, $minCount);
+            array_pop($current);
+            $debt[$i] -= $debt[$s];
+            $prev = $debt[$i];
+            if (abs($debt[$i]) < 0.001) {
+                break;
+            }
+        }
     }
 }

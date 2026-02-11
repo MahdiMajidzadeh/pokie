@@ -2,6 +2,8 @@
 
 namespace Tests\Feature;
 
+use App\Models\BuyIn;
+use App\Models\Payback;
 use App\Models\Table;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -114,5 +116,78 @@ class PokerTableTest extends TestCase
         $table->load(['players.buyIns', 'players.paybacks']);
         $this->assertSame(110.0, (float) $table->players->first()->amount);
         $this->assertSame(110.0, (float) $table->bank);
+    }
+
+    public function test_minimum_settlement_transactions(): void
+    {
+        $table = Table::create([
+            'name' => 'Min Trans',
+            'token' => 't2',
+            'manager_token' => 'm2',
+        ]);
+
+        $players = collect(['A', 'B', 'C', 'D', 'E'])->map(fn ($name) => $table->players()->create(['name' => $name]))->all();
+
+        // display_amount: A=-3, B=-2, C=-2, D=+3, E=+4 (counterexample: greedy gives 4, optimal gives 3)
+        BuyIn::create(['table_id' => $table->id, 'player_id' => $players[0]->id, 'amount' => -10]);
+        Payback::create(['table_id' => $table->id, 'player_id' => $players[0]->id, 'amount' => 7]);
+
+        BuyIn::create(['table_id' => $table->id, 'player_id' => $players[1]->id, 'amount' => -10]);
+        Payback::create(['table_id' => $table->id, 'player_id' => $players[1]->id, 'amount' => 8]);
+
+        BuyIn::create(['table_id' => $table->id, 'player_id' => $players[2]->id, 'amount' => -10]);
+        Payback::create(['table_id' => $table->id, 'player_id' => $players[2]->id, 'amount' => 8]);
+
+        BuyIn::create(['table_id' => $table->id, 'player_id' => $players[3]->id, 'amount' => -5]);
+        Payback::create(['table_id' => $table->id, 'player_id' => $players[3]->id, 'amount' => 8]);
+
+        BuyIn::create(['table_id' => $table->id, 'player_id' => $players[4]->id, 'amount' => -10]);
+        Payback::create(['table_id' => $table->id, 'player_id' => $players[4]->id, 'amount' => 14]);
+
+        $table->load(['players.buyIns', 'players.paybacks', 'players.settlements']);
+
+        $txs = $table->getMinimumSettlementTransactions();
+
+        $this->assertCount(3, $txs, 'Optimal solution should use 3 transactions, not 4 (greedy)');
+    }
+
+    public function test_withdraw_direction_debtor_pays_creditor(): void
+    {
+        $table = Table::create([
+            'name' => 'Dir Test',
+            'token' => 't3',
+            'manager_token' => 'm3',
+        ]);
+
+        $majid = $table->players()->create(['name' => 'Majid']);
+        $ahmad = $table->players()->create(['name' => 'Ahmad']);
+        $hamed = $table->players()->create(['name' => 'Hamed']);
+        $sogand = $table->players()->create(['name' => 'Sogand']);
+        $aliSh = $table->players()->create(['name' => 'Ali Sh.']);
+        $mr = $table->players()->create(['name' => 'MohammadReza']);
+        $aliF = $table->players()->create(['name' => 'Ali F.']);
+
+        foreach ([[$majid, -8], [$ahmad, -9], [$hamed, -10], [$sogand, 14], [$aliSh, 27], [$mr, 2], [$aliF, -16]] as [$p, $target]) {
+            if ($target < 0) {
+                BuyIn::create(['table_id' => $table->id, 'player_id' => $p->id, 'amount' => -abs($target) * 2]);
+                Payback::create(['table_id' => $table->id, 'player_id' => $p->id, 'amount' => abs($target)]);
+            } else {
+                BuyIn::create(['table_id' => $table->id, 'player_id' => $p->id, 'amount' => -1]);
+                Payback::create(['table_id' => $table->id, 'player_id' => $p->id, 'amount' => 1 + $target]);
+            }
+        }
+
+        $table->load(['players.buyIns', 'players.paybacks', 'players.settlements']);
+
+        $txs = $table->getMinimumSettlementTransactions();
+
+        $debtorIds = collect([$majid, $ahmad, $hamed, $aliF])->pluck('id');
+        $creditorIds = collect([$sogand, $aliSh, $mr])->pluck('id');
+
+        foreach ($txs as $tx) {
+            $this->assertTrue($debtorIds->contains($tx->from->id), "From must be debtor: {$tx->from->name}");
+            $this->assertTrue($creditorIds->contains($tx->to->id), "To must be creditor: {$tx->to->name}");
+        }
+        $this->assertTrue($txs->contains(fn ($t) => $t->from->name === 'Ali F.' && $t->to->name === 'MohammadReza' && abs($t->amount - 2) < 0.01));
     }
 }
