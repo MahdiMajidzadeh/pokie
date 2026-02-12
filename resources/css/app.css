@@ -10,32 +10,33 @@
 
 :root {
   --card: #ffffff;
-  --ring: #222222;
-  --input: #eeeeee;
-  --muted: #f5f5f5;
-  --accent: #0099ff;
-  --border: #eeeeee;
-  --radius: 0.5rem;
+  --ring: #2563eb;
+  --input: #f3f4f6;
+  --muted: #f8fafc;
+  --accent: #2563eb;
+  --border: #e5e7eb;
+  --radius: 0.75rem;
   --popover: #ffffff;
-  --primary: #222222;
+  --primary: #2563eb;
   --spacing: 0.5rem;
   --font-mono: "Menlo", "SFMono-Regular", "Consolas", "Liberation Mono", monospace;
-  --font-sans: "Avenir Next", "Avenir Next W01", "Avenir", "helvetica", "arial", sans-serif;
-  --secondary: #eeeeee;
-  --shadow-lg: 0 12px 24px rgba(34, 34, 34, 0.3);
-  --shadow-md: 0 6px 12px rgba(0, 0, 0, 0.24);
-  --shadow-sm: 0 1.5px 6px rgba(0, 0, 0, 0.24);
-  --shadow-xl: 0 24px 36px rgba(34, 34, 34, 0.3);
-  --background: #ffffff;
-  --foreground: #222222;
-  --destructive: #d0011b;
-  --card-foreground: #222222;
-  --muted-foreground: #999999;
+  --font-sans: "Instrument Sans", ui-sans-serif, system-ui, sans-serif;
+  --secondary: #f3f4f6;
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.06), 0 2px 4px -2px rgba(0, 0, 0, 0.04);
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+  --background: #fafafa;
+  --foreground: #111827;
+  --destructive: #dc2626;
+  --card-foreground: #111827;
+  --muted-foreground: #6b7280;
   --accent-foreground: #ffffff;
-  --popover-foreground: #222222;
+  --popover-foreground: #111827;
   --primary-foreground: #ffffff;
-  --secondary-foreground: #222222;
+  --secondary-foreground: #111827;
   --destructive-foreground: #ffffff;
+  --success: #22c55e;
 }
 
 .dark {

@@ -10,7 +10,7 @@ use App\Models\Table;
 it('home page renders', function () {
     $response = $this->get('/');
     $response->assertStatus(200);
-    $response->assertSee('Create a poker table');
+    $response->assertSee('Create a table');
 });
 
 it('create table redirects to manager url', function () {
