@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
@@ -40,7 +42,10 @@ class Table extends Model
     /** Bank: chips still in play = -table_balance (buy-ins) - paybacks. */
     public function getBankAttribute(): float
     {
-        return (float) ($this->paybacks()->sum('amount'));
+        $tableBalance = (float) $this->buyIns()->sum('amount');
+        $paybacks = (float) $this->paybacks()->sum('amount');
+
+        return -$tableBalance - $paybacks;
     }
 
     /**
@@ -95,6 +100,7 @@ class Table extends Model
                 $minCount = count($current);
                 $bestTransactions = $current;
             }
+
             return;
         }
 

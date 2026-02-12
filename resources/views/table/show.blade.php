@@ -24,6 +24,9 @@
                                     class="btn btn-link p-0 text-muted text-sm fw-semibold text-decoration-none border-0 bg-transparent">
                                 <i class="bi bi-link-45deg me-1"></i><span class="copy-label">Public link</span>
                             </button>
+                            @if(!$isManager)
+                                <span class="text-body-secondary text-sm fw-semibold">View only</span>
+                            @endif
                             @if($isManager && $managerToken)
                                 <button type="button" onclick="copyTableUrl(this)" data-table-url="{{ url()->route('table.manager', ['token' => $table->token, 'manager_token' => $managerToken]) }}" data-copy-label="manager link"
                                         class="btn btn-link p-0 text-muted text-sm fw-semibold text-decoration-none border-0 bg-transparent">

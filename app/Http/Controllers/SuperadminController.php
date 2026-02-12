@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers;
 
+use App\Http\Requests\SuperadminLoginRequest;
 use App\Models\Table;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -20,16 +23,14 @@ class SuperadminController extends Controller
         return view('superadmin.login', ['passwordConfigured' => $passwordConfigured]);
     }
 
-    public function login(Request $request): RedirectResponse
+    public function login(SuperadminLoginRequest $request): RedirectResponse
     {
         $password = config('superadmin.password');
         if (! filled($password)) {
             return redirect()->route('superadmin.login')->with('error', 'Superadmin is not configured.');
         }
 
-        $validated = $request->validate([
-            'password' => ['required', 'string'],
-        ]);
+        $validated = $request->validated();
 
         if (! hash_equals((string) $password, $validated['password'])) {
             return redirect()->route('superadmin.login')->with('error', 'Invalid password.');

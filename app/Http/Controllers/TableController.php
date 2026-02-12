@@ -1,7 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreBuyInRequest;
+use App\Http\Requests\StorePaybackRequest;
+use App\Http\Requests\StorePlayerRequest;
+use App\Http\Requests\StoreSettlementRequest;
 use App\Models\BuyIn;
 use App\Models\Payback;
 use App\Models\Player;
@@ -107,7 +113,7 @@ class TableController extends Controller
         ]);
     }
 
-    public function storePlayer(Request $request, string $token, string $managerToken): RedirectResponse
+    public function storePlayer(StorePlayerRequest $request, string $token, string $managerToken): RedirectResponse
     {
         $table = $this->findTable($token);
 
@@ -116,17 +122,14 @@ class TableController extends Controller
                 ->with('error', 'Invalid manager link.');
         }
 
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-        ]);
-
+        $validated = $request->validated();
         $table->players()->create(['name' => $validated['name']]);
 
         return redirect()->route('table.manager', ['token' => $token, 'manager_token' => $managerToken])
             ->with('success', 'Player added.');
     }
 
-    public function storeBuyIn(Request $request, string $token, string $managerToken): RedirectResponse
+    public function storeBuyIn(StoreBuyInRequest $request, string $token, string $managerToken): RedirectResponse
     {
         $table = $this->findTable($token);
 
@@ -135,15 +138,8 @@ class TableController extends Controller
                 ->with('error', 'Invalid manager link.');
         }
 
-        $validated = $request->validate([
-            'player_id' => ['required', 'exists:players,id'],
-            'amount' => ['required', 'numeric', 'min:0.01'],
-        ]);
-
+        $validated = $request->validated();
         $player = Player::findOrFail($validated['player_id']);
-        if ($player->table_id !== $table->id) {
-            abort(403);
-        }
 
         BuyIn::create([
             'table_id' => $table->id,
@@ -155,7 +151,7 @@ class TableController extends Controller
             ->with('success', 'Buy-in recorded.');
     }
 
-    public function storePayback(Request $request, string $token, string $managerToken): RedirectResponse
+    public function storePayback(StorePaybackRequest $request, string $token, string $managerToken): RedirectResponse
     {
         $table = $this->findTable($token);
 
@@ -164,15 +160,8 @@ class TableController extends Controller
                 ->with('error', 'Invalid manager link.');
         }
 
-        $validated = $request->validate([
-            'player_id' => ['required', 'exists:players,id'],
-            'amount' => ['required', 'numeric', 'min:0.01'],
-        ]);
-
+        $validated = $request->validated();
         $player = Player::findOrFail($validated['player_id']);
-        if ($player->table_id !== $table->id) {
-            abort(403);
-        }
 
         Payback::create([
             'table_id' => $table->id,
@@ -184,7 +173,7 @@ class TableController extends Controller
             ->with('success', 'Payback recorded.');
     }
 
-    public function storeSettlement(Request $request, string $token, string $managerToken): RedirectResponse
+    public function storeSettlement(StoreSettlementRequest $request, string $token, string $managerToken): RedirectResponse
     {
         $table = $this->findTable($token);
 
@@ -193,15 +182,8 @@ class TableController extends Controller
                 ->with('error', 'Invalid manager link.');
         }
 
-        $validated = $request->validate([
-            'player_id' => ['required', 'exists:players,id'],
-            'amount' => ['required', 'numeric'],
-        ]);
-
+        $validated = $request->validated();
         $player = Player::findOrFail($validated['player_id']);
-        if ($player->table_id !== $table->id) {
-            abort(403);
-        }
 
         Settlement::create([
             'table_id' => $table->id,
@@ -221,6 +203,7 @@ class TableController extends Controller
         }
         $buyIn = BuyIn::where('table_id', $table->id)->findOrFail($id);
         $buyIn->delete();
+
         return redirect()->route('table.manager', ['token' => $token, 'manager_token' => $managerToken])
             ->with('success', 'Buy-in deleted.');
     }
@@ -233,6 +216,7 @@ class TableController extends Controller
         }
         $payback = Payback::where('table_id', $table->id)->findOrFail($id);
         $payback->delete();
+
         return redirect()->route('table.manager', ['token' => $token, 'manager_token' => $managerToken])
             ->with('success', 'Payback deleted.');
     }
@@ -245,6 +229,7 @@ class TableController extends Controller
         }
         $settlement = Settlement::where('table_id', $table->id)->findOrFail($id);
         $settlement->delete();
+
         return redirect()->route('table.manager', ['token' => $token, 'manager_token' => $managerToken])
             ->with('success', 'Settlement deleted.');
     }
