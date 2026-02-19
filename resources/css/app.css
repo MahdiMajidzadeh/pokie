@@ -7,7 +7,6 @@
 @source '../../storage/framework/views/*.php';
 @source '../**/*.blade.php';
 @source '../**/*.js';
-
 :root {
   --card: #ffffff;
   --ring: #2563eb;
@@ -105,3 +104,4 @@
     border-radius: var(--radius);
   }
 }
+

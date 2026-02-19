@@ -4,24 +4,24 @@
 
 @section('content')
     <div class="mb-4">
-        <a href="{{ route('home') }}" class="text-decoration-none small fw-medium" style="color: #2563eb;">← Home</a>
+        <a href="{{ route('home') }}" class="text-primary text-decoration-none small fw-medium">← Home</a>
     </div>
 
     {{-- Header card: table name + actions (profile-style layout) --}}
-    <div class="card border-0 rounded-3 shadow-sm mb-4" style="background: #ffffff; box-shadow: 0 1px 3px 0 rgba(0,0,0,0.06), 0 1px 2px -1px rgba(0,0,0,0.06);">
-        <div class="card-body p-4 p-lg-5">
+    <div class="card border-0 rounded-3 shadow-sm mb-4">
+        <div class="card-body p-4">
             <div class="row align-items-center">
                 <div class="col-lg-6 col-12 d-flex align-items-center">
                     <div class="col-auto">
-                        <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width:4rem;height:4rem; background-color: #2563eb;">
-                            <i class="bi bi-currency-dollar text-white" style="font-size: 1.5rem;"></i>
+                        <div class="avatar avatar-xl bg-primary rounded-circle text-white d-flex align-items-center justify-content-center flex-shrink-0" style="width:4rem;height:4rem;">
+                            <i class="bi bi-currency-dollar text-lg"></i>
                         </div>
                     </div>
                     <div class="ms-4 ms-md-5">
-                        <h1 class="h2 ls-tight mb-2 fw-bold" style="color: #111827;">{{ $table->name }}</h1>
+                        <h1 class="h2 ls-tight mb-2 fw-bold">{{ $table->name }}</h1>
                         <div class="d-flex flex-wrap align-items-center gap-3">
-                                <button type="button" onclick="copyTableUrl(this)" data-table-url="{{ url()->route('table.show', ['token' => $table->token]) }}" data-copy-label="public link"
-                                    class="btn btn-link p-0 text-sm fw-semibold text-decoration-none border-0 bg-transparent" style="color: #6b7280;">
+                            <button type="button" onclick="copyTableUrl(this)" data-table-url="{{ url()->route('table.show', ['token' => $table->token]) }}" data-copy-label="public link"
+                                    class="btn btn-link p-0 text-muted text-sm fw-semibold text-decoration-none border-0 bg-transparent">
                                 <i class="bi bi-link-45deg me-1"></i><span class="copy-label">Public link</span>
                             </button>
                             @if(!$isManager)
@@ -29,7 +29,7 @@
                             @endif
                             @if($isManager && $managerToken)
                                 <button type="button" onclick="copyTableUrl(this)" data-table-url="{{ url()->route('table.manager', ['token' => $table->token, 'manager_token' => $managerToken]) }}" data-copy-label="manager link"
-                                        class="btn btn-link p-0 text-sm fw-semibold text-decoration-none border-0 bg-transparent" style="color: #6b7280;">
+                                        class="btn btn-link p-0 text-muted text-sm fw-semibold text-decoration-none border-0 bg-transparent">
                                     <i class="bi bi-key me-1"></i><span class="copy-label">Manager link</span>
                                 </button>
                             @endif
@@ -74,7 +74,7 @@
     @endphp
     <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-4 g-3 g-base mb-4">
         <div class="col">
-            <div class="card card-sm border-0 rounded-3 h-100 shadow-sm" style="background: #ffffff; box-shadow: 0 1px 3px 0 rgba(0,0,0,0.06), 0 1px 2px -1px rgba(0,0,0,0.06);">
+            <div class="card card-sm border-0 rounded-3 h-100">
                 <div class="card-body">
                     <div class="h6 text-body-secondary mb-2">Table Balance</div>
                     <div class="d-flex align-items-center gap-3 gap-md-4">
@@ -85,7 +85,7 @@
                         
                         </div>
                         <div class="ms-auto">
-                            <div class="icon" style="color: #2563eb;">
+                            <div class="icon text-primary">
                                 <i class="bi bi-cash-coin"></i>
                             </div>
                         </div>
@@ -94,7 +94,7 @@
             </div>
         </div>
         <div class="col">
-            <div class="card card-sm border-0 rounded-3 h-100 shadow-sm" style="background: #ffffff; box-shadow: 0 1px 3px 0 rgba(0,0,0,0.06), 0 1px 2px -1px rgba(0,0,0,0.06);">
+            <div class="card card-sm border-0 rounded-3 h-100">
                 <div class="card-body">
                     <div class="h6 text-body-secondary mb-2">Total Settlement</div>
                     <div class="d-flex align-items-center gap-3 gap-md-4">
@@ -105,7 +105,7 @@
                             
                         </div>
                         <div class="ms-auto">
-                            <div class="icon" style="color: #2563eb;">
+                            <div class="icon text-primary">
                                 <i class="bi bi-arrow-left-right"></i>
                             </div>
                         </div>
@@ -114,7 +114,7 @@
             </div>
         </div>
         <div class="col">
-            <div class="card card-sm border-0 rounded-3 shadow-sm h-100" style="background: #ffffff; box-shadow: 0 1px 3px 0 rgba(0,0,0,0.06), 0 1px 2px -1px rgba(0,0,0,0.06);" role="button" tabindex="0" onclick="openPaybacksModal()" onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); openPaybacksModal(); }" style="cursor: pointer;">
+            <div class="card card-sm border-0 rounded-3 shadow-sm h-100" role="button" tabindex="0" onclick="openPaybacksModal()" onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); openPaybacksModal(); }" style="cursor: pointer;">
                 <div class="card-body">
                     <div class="h6 text-body-secondary mb-2">Bank</div>
                     <div class="d-flex align-items-center gap-3 gap-md-4">
@@ -124,7 +124,7 @@
                             </div>
                         </div>
                         <div class="ms-auto">
-                            <div class="icon" style="color: #2563eb;">
+                            <div class="icon text-primary">
                                 <i class="bi bi-safe"></i>
                             </div>
                         </div>
@@ -133,17 +133,17 @@
             </div>
         </div>
         <div class="col">
-            <div class="card card-sm border-0 rounded-3 shadow-sm h-100" style="background: #ffffff; box-shadow: 0 1px 3px 0 rgba(0,0,0,0.06), 0 1px 2px -1px rgba(0,0,0,0.06);" role="button" tabindex="0" onclick="openWithdrawModal()" onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); openWithdrawModal(); }" style="cursor: pointer;">
+            <div class="card card-sm border-0 rounded-3 shadow-sm h-100" role="button" tabindex="0" onclick="openWithdrawModal()" onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); openWithdrawModal(); }" style="cursor: pointer;">
                 <div class="card-body">
                     <div class="h6 text-body-secondary mb-2">Withdraw</div>
                     <div class="d-flex align-items-center gap-3 gap-md-4">
                         <div class="flex-grow-1 d-flex gap-3 align-items-center">
                             <div>
-                                <span class="h6 fw-semibold" style="color: #2563eb;">Settle up</span>
+                                <span class="h6 fw-semibold text-primary">Settle up</span>
                             </div>
                         </div>
                         <div class="ms-auto">
-                            <div class="icon" style="color: #2563eb;">
+                            <div class="icon text-primary">
                                 <i class="bi bi-cash-stack"></i>
                             </div>
                         </div>
@@ -155,7 +155,7 @@
 
     {{-- All paybacks modal (opened by clicking Bank card) --}}
     <div id="paybacks-modal" class="d-none position-fixed top-0 start-0 w-100 h-100 align-items-center justify-content-center p-3" style="z-index: 1050; background: rgba(0,0,0,0.5);">
-        <div class="bg-white rounded-3 position-relative w-100" style="max-width: 420px; max-height: 85vh; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.05);">
+        <div class="bg-white rounded-3 shadow position-relative w-100" style="max-width: 420px; max-height: 85vh; overflow: hidden; display: flex; flex-direction: column;">
             <div class="d-flex align-items-center justify-content-between p-4 border-bottom">
                 <h3 class="h5 fw-bold mb-0">All paybacks</h3>
                 <button type="button" onclick="closePaybacksModal()" class="btn btn-link text-body-secondary p-0" style="font-size: 1.5rem; line-height: 1;" aria-label="Close">&times;</button>
@@ -194,7 +194,7 @@
         $withdrawTransactions = $table->getMinimumSettlementTransactions();
     @endphp
     <div id="withdraw-modal" class="d-none position-fixed top-0 start-0 w-100 h-100 align-items-center justify-content-center p-3" style="z-index: 1050; background: rgba(0,0,0,0.5);">
-        <div class="bg-white rounded-3 position-relative w-100" style="max-width: 520px; max-height: 85vh; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.05);">
+        <div class="bg-white rounded-3 shadow position-relative w-100" style="max-width: 520px; max-height: 85vh; overflow: hidden; display: flex; flex-direction: column;">
             <div class="d-flex align-items-center justify-content-between p-4 border-bottom">
                 <h3 class="h5 fw-bold mb-0">Withdraw options</h3>
                 <button type="button" onclick="closeWithdrawModal()" class="btn btn-link text-body-secondary p-0" style="font-size: 1.5rem; line-height: 1;" aria-label="Close">&times;</button>
@@ -242,15 +242,15 @@
 
     {{-- Players --}}
     @if($table->players->isEmpty())
-        <div class="card border-0 rounded-3 shadow-sm mb-4" style="background: #ffffff; box-shadow: 0 1px 3px 0 rgba(0,0,0,0.06), 0 1px 2px -1px rgba(0,0,0,0.06);">
-            <div class="card-body p-5">
+        <div class="card border-0 rounded-3 shadow-sm mb-4">
+            <div class="card-body p-4">
                 <p class="text-body-secondary mb-0">No players yet.</p>
             </div>
         </div>
     @else
-        <div class="card border-0 rounded-3 shadow-sm mb-4" style="background: #ffffff; box-shadow: 0 1px 3px 0 rgba(0,0,0,0.06), 0 1px 2px -1px rgba(0,0,0,0.06);">
-            <div class="card-header bg-transparent border-0 pt-0 pb-1 px-5 pt-5">
-                <h5 class="fw-bold mb-0" style="color: #111827;">Players</h5>
+        <div class="card border-0 rounded-3 shadow-sm mb-4">
+            <div class="card-header bg-transparent border-0 pt-0 pb-1 px-4 pt-4">
+                <h5 class="fw-bold mb-0">Players</h5>
                 <p class="text-body-secondary small mt-1 mb-0">
                     Players at this table and their current balance.
                 </p>
@@ -271,11 +271,11 @@
                             </div>
                             <div class="">
                                 @if($player->settlements->isNotEmpty())
-                                    <span class="badge rounded-pill" style="background-color: #f0fdf4; color: #22c55e; border: 1px solid rgba(34,197,94,0.3);">
-                                        <i class="bi bi-check-circle-fill me-1"></i>Cleared
+                                    <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill">
+                                        Cleared
                                     </span>
                                 @else
-                                    <span class="badge rounded-pill" style="background-color: #f3f4f6; color: #6b7280; border: 1px solid #e5e7eb;">
+                                    <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 rounded-pill">
                                         Playing
                                     </span>
                                 @endif
@@ -296,7 +296,7 @@
 
         {{-- Player modal --}}
         <div id="player-modal" class="d-none position-fixed top-0 start-0 w-100 h-100 align-items-center justify-content-center p-3" style="z-index: 1050; background: rgba(0,0,0,0.5);">
-            <div class="bg-white rounded-3 position-relative w-100" style="max-width: 420px; max-height: 85vh; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.05);">
+            <div class="bg-white rounded-3 shadow position-relative w-100" style="max-width: 420px; max-height: 85vh; overflow: hidden; display: flex; flex-direction: column;">
                 <div class="d-flex align-items-center justify-content-between p-4 border-bottom">
                     <h3 id="player-modal-title" class="h5 fw-bold mb-0"></h3>
                     <button type="button" onclick="closePlayerModal()" class="btn btn-link text-body-secondary p-0" style="font-size: 1.5rem; line-height: 1;" aria-label="Close">&times;</button>
@@ -347,11 +347,11 @@
 
     @if($isManager)
         <div class="pt-2">
-            <h2 class="h6 fw-bold text-uppercase small mb-4" style="color: #6b7280;">Manage table</h2>
+            <h2 class="h6 fw-bold text-body-secondary text-uppercase small mb-3">Manage table</h2>
 
-            <div class="card border-0 rounded-3 shadow-sm mb-4" style="background: #ffffff; box-shadow: 0 1px 3px 0 rgba(0,0,0,0.06), 0 1px 2px -1px rgba(0,0,0,0.06);">
-                <div class="card-body p-4 p-lg-5">
-                    <h3 class="h6 fw-bold mb-3" style="color: #2563eb;">Add player</h3>
+            <div class="card border-0 rounded-3 shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <h3 class="h6 fw-bold mb-3">Add player</h3>
                     <form action="{{ route('table.players.store', ['token' => $table->token, 'manager_token' => $managerToken]) }}" method="POST" class="row g-2 align-items-end">
                         @csrf
                         <div class="col flex-grow-1">
@@ -360,7 +360,7 @@
                                    class="form-control rounded-3 border border-secondary">
                         </div>
                         <div class="col-auto">
-                            <button type="submit" class="btn btn-primary rounded-3 px-4" style="background-color: #2563eb; border-color: #2563eb;">Add</button>
+                            <button type="submit" class="btn btn-primary rounded-3 px-4">Add</button>
                         </div>
                     </form>
                     @error('name')
@@ -369,9 +369,9 @@
                 </div>
             </div>
 
-            <div class="card border-0 rounded-3 shadow-sm mb-4" style="background: #ffffff; box-shadow: 0 1px 3px 0 rgba(0,0,0,0.06), 0 1px 2px -1px rgba(0,0,0,0.06);">
-                <div class="card-body p-4 p-lg-5">
-                    <h3 class="h6 fw-bold mb-3" style="color: #2563eb;">Record buy-in</h3>
+            <div class="card border-0 rounded-3 shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <h3 class="h6 fw-bold mb-3">Record buy-in</h3>
                     @if($table->players->isEmpty())
                         <p class="small text-body-secondary mb-3">Add a player first.</p>
                     @endif
@@ -392,7 +392,7 @@
                                    class="form-control rounded-3 border border-secondary">
                         </div>
                         <div class="col-md-4">
-                            <button type="submit" class="btn btn-primary rounded-3 w-100" style="background-color: #2563eb; border-color: #2563eb;">Add buy-in</button>
+                            <button type="submit" class="btn btn-primary rounded-3 w-100">Add buy-in</button>
                         </div>
                     </form>
                     @error('player_id')<p class="mt-1 small text-danger mb-0">{{ $message }}</p>@enderror
@@ -400,9 +400,9 @@
                 </div>
             </div>
 
-            <div class="card border-0 rounded-3 shadow-sm mb-4" style="background: #ffffff; box-shadow: 0 1px 3px 0 rgba(0,0,0,0.06), 0 1px 2px -1px rgba(0,0,0,0.06);">
-                <div class="card-body p-4 p-lg-5">
-                    <h3 class="h6 fw-bold mb-3" style="color: #2563eb;">Record payback to bank</h3>
+            <div class="card border-0 rounded-3 shadow-0 mb-4">
+                <div class="card-body p-4">
+                    <h3 class="h6 fw-bold mb-3">Record payback to bank</h3>
                     @if($table->players->isEmpty())
                         <p class="small text-body-secondary mb-3">Add a player first.</p>
                     @endif
@@ -423,7 +423,7 @@
                                    class="form-control rounded-3 border border-secondary">
                         </div>
                         <div class="col-md-4">
-                            <button type="submit" class="btn btn-primary rounded-3 w-100" style="background-color: #2563eb; border-color: #2563eb;">Add payback</button>
+                            <button type="submit" class="btn btn-primary rounded-3 w-100">Add payback</button>
                         </div>
                     </form>
                     @error('player_id')<p class="mt-1 small text-danger mb-0">{{ $message }}</p>@enderror
@@ -431,9 +431,9 @@
                 </div>
             </div>
 
-            <div class="card border-0 rounded-3 shadow-sm mb-4" style="background: #ffffff; box-shadow: 0 1px 3px 0 rgba(0,0,0,0.06), 0 1px 2px -1px rgba(0,0,0,0.06);">
-                <div class="card-body p-4 p-lg-5">
-                    <h3 class="h6 fw-bold mb-3" style="color: #2563eb;">Record settlement</h3>
+            <div class="card border-0 rounded-3 shadow-0 mb-4">
+                <div class="card-body p-4">
+                    <h3 class="h6 fw-bold mb-3">Record settlement</h3>
                     @if($table->players->isEmpty())
                         <p class="small text-body-secondary mb-3">Add a player first.</p>
                     @endif
@@ -454,7 +454,7 @@
                                    class="form-control rounded-3 border border-secondary">
                         </div>
                         <div class="col-md-4">
-                            <button type="submit" class="btn btn-primary rounded-3 w-100" style="background-color: #2563eb; border-color: #2563eb;">Add settlement</button>
+                            <button type="submit" class="btn btn-primary rounded-3 w-100">Add settlement</button>
                         </div>
                     </form>
                     @error('player_id')<p class="mt-1 small text-danger mb-0">{{ $message }}</p>@enderror
@@ -463,7 +463,7 @@
             </div>
 
             {{-- Activity log: buy-ins, paybacks, settlements --}}
-            <div class="card border-0 rounded-3 shadow-sm mb-4" style="background: #ffffff; box-shadow: 0 1px 3px 0 rgba(0,0,0,0.06), 0 1px 2px -1px rgba(0,0,0,0.06);">
+            <div class="card border-0 rounded-3 shadow-sm mb-4">
                 <div class="card-header bg-transparent border-0 pt-0 pb-1 px-4 pt-4">
                     <h5 class="fw-bold mb-0">Activity log</h5>
                     <p class="text-body-secondary small mt-1 mb-0">
@@ -570,7 +570,7 @@
 
             {{-- Log delete confirmation modal --}}
             <div id="log-delete-modal" class="d-none position-fixed top-0 start-0 w-100 h-100 align-items-center justify-content-center p-3" style="z-index: 1060; background: rgba(0,0,0,0.5);">
-                <div class="bg-white rounded-3 position-relative w-100" style="max-width: 420px; max-height: 85vh; overflow: hidden; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.05);">
+                <div class="bg-white rounded-3 shadow position-relative w-100" style="max-width: 420px; max-height: 85vh; overflow: hidden;">
                     <div class="d-flex align-items-center justify-content-between p-4 border-bottom">
                         <h3 class="h5 fw-bold mb-0">Delete log</h3>
                         <button type="button" id="log-delete-close-btn" class="btn btn-link text-body-secondary p-0" style="font-size: 1.5rem; line-height: 1;" aria-label="Close">&times;</button>
