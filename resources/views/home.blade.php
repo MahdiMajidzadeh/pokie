@@ -5,9 +5,6 @@
 @section('content')
     <div class="text-center mb-8">
         <h1 class="display-6 fw-bold mb-3" style="color: #111827;">Simple poker tracking for everyone</h1>
-        <p class="text-body-secondary mb-0" style="max-width: 480px; margin-left: auto; margin-right: auto;">
-            Create a table, add players, and track buy-ins and settlements. Get a manager link to run your poker night.
-        </p>
     </div>
 
     <div class="card border-0 rounded-3 shadow-sm mb-6" style="background: #ffffff; box-shadow: 0 1px 3px 0 rgba(0,0,0,0.06), 0 1px 2px -1px rgba(0,0,0,0.06);">
