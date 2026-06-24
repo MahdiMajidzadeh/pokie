@@ -15,8 +15,6 @@ class Player extends Model
 {
     use HasFactory;
 
-    protected $with = ['buyIns', 'paybacks', 'settlements'];
-
     protected $fillable = ['table_id', 'name'];
 
     public function table(): BelongsTo
