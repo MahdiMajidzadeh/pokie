@@ -27,6 +27,18 @@ it('login with correct password redirects to dashboard', function () {
     expect(session('superadmin'))->toBeTrue();
 });
 
+it('throttles repeated failed login attempts', function () {
+    Config::set('superadmin.password', 'correctpass');
+
+    for ($i = 0; $i < 5; $i++) {
+        $this->post(route('superadmin.login'), ['password' => 'wrongpass'])
+            ->assertRedirect(route('superadmin.login'));
+    }
+
+    $this->post(route('superadmin.login'), ['password' => 'wrongpass'])
+        ->assertStatus(429);
+});
+
 it('dashboard shows paginated tables', function () {
     Config::set('superadmin.password', 'testpass');
     $this->post(route('superadmin.login'), ['password' => 'testpass']);

@@ -23,7 +23,7 @@ Route::delete('/t/{token}/{manager_token}/settlements/{id}', [TableController::c
 
 Route::prefix('superadmin')->name('superadmin.')->group(function () {
     Route::get('login', [SuperadminController::class, 'showLogin'])->name('login');
-    Route::post('login', [SuperadminController::class, 'login']);
+    Route::post('login', [SuperadminController::class, 'login'])->middleware('throttle:5,1');
     Route::post('logout', [SuperadminController::class, 'logout'])->name('logout')->middleware('superadmin');
     Route::get('/', [SuperadminController::class, 'dashboard'])->name('dashboard')->middleware('superadmin');
 });
