@@ -78,6 +78,31 @@ it('add player requires manager token', function () {
     $this->assertDatabaseMissing('players', ['name' => 'Alice']);
 });
 
+it('rejects duplicate player name at the same table', function () {
+    Table::create([
+        'name' => 'Test',
+        'token' => 'duptoken',
+        'manager_token' => 'dupmgr',
+    ]);
+
+    $this->post('/t/duptoken/dupmgr/players', ['name' => 'Alice']);
+    $this->assertDatabaseCount('players', 1);
+
+    $response = $this->post('/t/duptoken/dupmgr/players', ['name' => 'Alice']);
+    $response->assertSessionHasErrors('name');
+    $this->assertDatabaseCount('players', 1);
+});
+
+it('allows the same player name at different tables', function () {
+    Table::create(['name' => 'A', 'token' => 'ta', 'manager_token' => 'ma']);
+    Table::create(['name' => 'B', 'token' => 'tb', 'manager_token' => 'mb']);
+
+    $this->post('/t/ta/ma/players', ['name' => 'Alice']);
+    $this->post('/t/tb/mb/players', ['name' => 'Alice']);
+
+    $this->assertDatabaseCount('players', 2);
+});
+
 it('full flow buyin and payback', function () {
     $table = Table::create([
         'name' => 'Game',
