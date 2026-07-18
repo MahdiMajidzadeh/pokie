@@ -40,7 +40,10 @@ class TableController extends Controller
         $entry = [
             'token' => $table->token,
             'name' => $table->name,
+            'at' => now()->toIso8601String(),
         ];
+        $existing = collect($recent)->first(fn ($e) => ($e['token'] ?? '') === $table->token);
+        $managerToken ??= $existing['manager_token'] ?? null;
         if ($managerToken !== null) {
             $entry['manager_token'] = $managerToken;
         }
@@ -70,7 +73,7 @@ class TableController extends Controller
 
         if (! $this->ensureManager($table, $managerToken)) {
             return redirect()->route('table.show', ['token' => $token])
-                ->with('error', 'Invalid manager link.');
+                ->with('invalid_manager', true);
         }
 
         $table->load(['players.buyIns', 'players.paybacks', 'players.settlements', 'paybacks.player', 'buyIns.player', 'settlements.player']);

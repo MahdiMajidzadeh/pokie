@@ -33,7 +33,7 @@ class SuperadminController extends Controller
         $validated = $request->validated();
 
         if (! hash_equals((string) $password, $validated['password'])) {
-            return redirect()->route('superadmin.login')->with('error', 'Invalid password.');
+            return redirect()->route('superadmin.login')->with('error', 'Wrong password.');
         }
 
         session()->put('superadmin', true);
@@ -53,8 +53,9 @@ class SuperadminController extends Controller
     public function dashboard(): View
     {
         $tables = Table::query()
+            ->withCount(['players', 'buyIns', 'paybacks', 'settlements'])
             ->orderByDesc('created_at')
-            ->paginate(15)
+            ->paginate(25)
             ->withQueryString();
 
         return view('superadmin.dashboard', ['tables' => $tables]);

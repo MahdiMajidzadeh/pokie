@@ -10,7 +10,7 @@ use App\Models\Table;
 it('home page renders', function () {
     $response = $this->get('/');
     $response->assertStatus(200);
-    $response->assertSee('Create a table');
+    $response->assertSee('Create table');
 });
 
 it('create table redirects to manager url', function () {
@@ -36,11 +36,26 @@ it('view only page has no forms', function () {
     $response = $this->get('/t/viewtoken123');
     $response->assertStatus(200);
     $response->assertSee('Test');
-    $response->assertSee('View only');
+    $response->assertSee('Read-only link');
     $response->assertDontSee('Add player');
 });
 
 it('manager page has forms', function () {
+    $table = Table::create([
+        'name' => 'Test',
+        'token' => 'viewtoken123',
+        'manager_token' => 'mgrtoken456',
+    ]);
+    $table->players()->create(['name' => 'Maya']);
+
+    $response = $this->get('/t/viewtoken123/mgrtoken456');
+    $response->assertStatus(200);
+    $response->assertSee('Add player');
+    $response->assertSee('Record buy-in');
+    $response->assertSee('Record payback');
+});
+
+it('manager page shows empty state before players are added', function () {
     Table::create([
         'name' => 'Test',
         'token' => 'viewtoken123',
@@ -49,9 +64,9 @@ it('manager page has forms', function () {
 
     $response = $this->get('/t/viewtoken123/mgrtoken456');
     $response->assertStatus(200);
+    $response->assertSee('Your table is ready.');
     $response->assertSee('Add player');
-    $response->assertSee('Record buy-in');
-    $response->assertSee('Record payback');
+    $response->assertSee('No players yet');
 });
 
 it('invalid manager token redirects to view', function () {
@@ -63,7 +78,7 @@ it('invalid manager token redirects to view', function () {
 
     $response = $this->get('/t/viewtoken123/wrongmanager');
     $response->assertRedirect('/t/viewtoken123');
-    $response->assertSessionHas('error');
+    $response->assertSessionHas('invalid_manager');
 });
 
 it('add player requires manager token', function () {
