@@ -61,83 +61,137 @@ class Table extends Model
     public function getMinimumSettlementTransactions(): Collection
     {
         $players = $this->relationLoaded('players') ? $this->players : $this->players()->get();
-        $debt = [];
+        $balances = [];
         $playerMap = [];
         foreach ($players as $p) {
             $bal = $p->display_amount;
             if (abs($bal) > 0.001) {
-                $debt[] = $bal;
+                $balances[] = $bal;
                 $playerMap[] = $p;
             }
         }
 
-        $bestTransactions = [];
-        $minCount = PHP_INT_MAX;
-        $this->dfsMinTransactions($debt, 0, [], $playerMap, $bestTransactions, $minCount);
+        $transactions = [];
+        foreach ($this->partitionIntoZeroSumGroups($balances) as $group) {
+            foreach ($this->settleGroup($group, $balances, $playerMap) as $tx) {
+                $transactions[] = $tx;
+            }
+        }
 
-        return collect($bestTransactions);
+        return collect($transactions);
     }
 
     /**
-     * Backtracking DFS to find minimum number of transactions.
+     * Partition players into the maximum number of disjoint zero-sum groups.
+     * A group of size k settles in k-1 transactions, so maximizing groups
+     * minimizes total transactions (n - groups).
      *
-     * @param  array<int, float>  $debt
-     * @param  array<int, object{from: Player, to: Player, amount: float}>  $current
-     * @param  array<int, Player>  $playerMap
-     * @param  array<int, object{from: Player, to: Player, amount: float}>  $bestTransactions
+     * @param  array<int, float>  $balances
+     * @return array<int, array<int, int>> groups of indices into $balances
      */
-    private function dfsMinTransactions(
-        array $debt,
-        int $s,
-        array $current,
-        array $playerMap,
-        array &$bestTransactions,
-        int &$minCount
-    ): void {
-        $n = count($debt);
-        while ($s < $n && abs($debt[$s]) < 0.001) {
-            $s++;
+    private function partitionIntoZeroSumGroups(array $balances): array
+    {
+        $n = count($balances);
+        if ($n === 0) {
+            return [];
+        }
+        // Bitmask DP is exponential; past this size settle everyone as one group.
+        if ($n > 16) {
+            return [range(0, $n - 1)];
         }
 
-        if ($s >= $n) {
-            if (count($current) < $minCount) {
-                $minCount = count($current);
-                $bestTransactions = $current;
-            }
-
-            return;
+        $full = (1 << $n) - 1;
+        $bitIndex = [];
+        for ($i = 0; $i < $n; $i++) {
+            $bitIndex[1 << $i] = $i;
         }
 
-        $prev = 0.0;
-        for ($i = $s + 1; $i < $n; $i++) {
-            if (abs($debt[$i]) < 0.001) {
+        $sum = array_fill(0, $full + 1, 0.0);
+        for ($mask = 1; $mask <= $full; $mask++) {
+            $low = $mask & -$mask;
+            $sum[$mask] = $sum[$mask ^ $low] + $balances[$bitIndex[$low]];
+        }
+
+        $best = array_fill(0, $full + 1, -1);
+        $choice = array_fill(0, $full + 1, 0);
+        $best[0] = 0;
+        for ($mask = 1; $mask <= $full; $mask++) {
+            if (abs($sum[$mask]) > 0.001) {
                 continue;
             }
-            if ($debt[$s] * $debt[$i] >= 0) {
-                continue;
+            $low = $mask & -$mask;
+            for ($sub = $mask; $sub > 0; $sub = ($sub - 1) & $mask) {
+                if (! ($sub & $low) || abs($sum[$sub]) > 0.001) {
+                    continue;
+                }
+                $rest = $mask ^ $sub;
+                if ($best[$rest] >= 0 && $best[$rest] + 1 > $best[$mask]) {
+                    $best[$mask] = $best[$rest] + 1;
+                    $choice[$mask] = $sub;
+                }
             }
-            if (abs($debt[$i] - $prev) < 0.001) {
-                continue;
+        }
+
+        if ($best[$full] < 0) {
+            return [range(0, $n - 1)];
+        }
+
+        $groups = [];
+        $mask = $full;
+        while ($mask !== 0) {
+            $sub = $choice[$mask];
+            $indices = [];
+            for ($i = 0; $i < $n; $i++) {
+                if ($sub & (1 << $i)) {
+                    $indices[] = $i;
+                }
             }
-            if (count($current) + 1 >= $minCount) {
-                continue;
-            }
-            $transfer = min(abs($debt[$s]), abs($debt[$i]));
-            $debt[$i] += $debt[$s];
-            $debtor = $debt[$s] < 0 ? $playerMap[$s] : $playerMap[$i];
-            $creditor = $debt[$s] < 0 ? $playerMap[$i] : $playerMap[$s];
-            $current[] = (object) [
-                'from' => $debtor,
-                'to' => $creditor,
+            $groups[] = $indices;
+            $mask ^= $sub;
+        }
+
+        return $groups;
+    }
+
+    /**
+     * Settle one zero-sum group with direct debtor-to-creditor payments.
+     *
+     * @param  array<int, int>  $indices
+     * @param  array<int, float>  $balances
+     * @param  array<int, Player>  $playerMap
+     * @return array<int, object{from: Player, to: Player, amount: float}>
+     */
+    private function settleGroup(array $indices, array $balances, array $playerMap): array
+    {
+        $remaining = [];
+        foreach ($indices as $i) {
+            $remaining[$i] = $balances[$i];
+        }
+        $debtors = array_values(array_filter($indices, fn ($i) => $remaining[$i] < -0.001));
+        $creditors = array_values(array_filter($indices, fn ($i) => $remaining[$i] > 0.001));
+
+        $transactions = [];
+        $d = 0;
+        $c = 0;
+        while ($d < count($debtors) && $c < count($creditors)) {
+            $di = $debtors[$d];
+            $ci = $creditors[$c];
+            $transfer = min(-$remaining[$di], $remaining[$ci]);
+            $transactions[] = (object) [
+                'from' => $playerMap[$di],
+                'to' => $playerMap[$ci],
                 'amount' => round($transfer, 2),
             ];
-            $this->dfsMinTransactions($debt, $s + 1, $current, $playerMap, $bestTransactions, $minCount);
-            array_pop($current);
-            $debt[$i] -= $debt[$s];
-            $prev = $debt[$i];
-            if (abs($debt[$i]) < 0.001) {
-                break;
+            $remaining[$di] += $transfer;
+            $remaining[$ci] -= $transfer;
+            if ($remaining[$di] > -0.001) {
+                $d++;
+            }
+            if ($remaining[$ci] < 0.001) {
+                $c++;
             }
         }
+
+        return $transactions;
     }
 }
