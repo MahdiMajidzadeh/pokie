@@ -30,7 +30,7 @@ npm run build
 
 ## Configuration
 
-- **Database**: Configure in `.env` (SQLite by default)
+- **Database**: MySQL — configure the connection in `.env` (`DB_DATABASE=pokie` by default; a separate `pokie_test` database is used by the test suite)
 - **Superadmin**: Set `SUPERADMIN_PASSWORD` in `.env` to enable the superadmin dashboard at `/superadmin`
 
 ## Development
