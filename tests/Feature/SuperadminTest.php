@@ -2,8 +2,12 @@
 
 declare(strict_types=1);
 
+use App\Livewire\Superadmin\Dashboard;
+use App\Livewire\Superadmin\Login;
 use App\Models\Table;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\RateLimiter;
+use Livewire\Livewire;
 
 it('unauthenticated access to dashboard redirects to login', function () {
     $response = $this->get(route('superadmin.dashboard'));
@@ -14,16 +18,21 @@ it('unauthenticated access to dashboard redirects to login', function () {
 it('login with wrong password returns error', function () {
     Config::set('superadmin.password', 'correctpass');
 
-    $response = $this->post(route('superadmin.login'), ['password' => 'wrongpass']);
-    $response->assertRedirect(route('superadmin.login'));
-    $response->assertSessionHas('error');
+    Livewire::test(Login::class)
+        ->set('form.password', 'wrongpass')
+        ->call('login')
+        ->assertNoRedirect()
+        ->assertSet('error', 'Wrong password.');
 });
 
 it('login with correct password redirects to dashboard', function () {
     Config::set('superadmin.password', 'testpass');
 
-    $response = $this->post(route('superadmin.login'), ['password' => 'testpass']);
-    $response->assertRedirect(route('superadmin.dashboard'));
+    Livewire::test(Login::class)
+        ->set('form.password', 'testpass')
+        ->call('login')
+        ->assertRedirect(route('superadmin.dashboard'));
+
     expect(session('superadmin'))->toBeTrue();
 });
 
@@ -31,17 +40,23 @@ it('throttles repeated failed login attempts', function () {
     Config::set('superadmin.password', 'correctpass');
 
     for ($i = 0; $i < 5; $i++) {
-        $this->post(route('superadmin.login'), ['password' => 'wrongpass'])
-            ->assertRedirect(route('superadmin.login'));
+        Livewire::test(Login::class)
+            ->set('form.password', 'wrongpass')
+            ->call('login');
     }
 
-    $this->post(route('superadmin.login'), ['password' => 'wrongpass'])
-        ->assertStatus(429);
+    expect(RateLimiter::tooManyAttempts('superadmin-login:'.request()->ip(), 5))->toBeTrue();
+
+    $test = Livewire::test(Login::class)
+        ->set('form.password', 'wrongpass')
+        ->call('login')
+        ->assertNoRedirect();
+
+    expect($test->get('error'))->toContain('Too many attempts');
 });
 
 it('dashboard shows paginated tables', function () {
-    Config::set('superadmin.password', 'testpass');
-    $this->post(route('superadmin.login'), ['password' => 'testpass']);
+    $this->withSession(['superadmin' => true]);
 
     Table::create([
         'name' => 'Dashboard Table',
@@ -49,17 +64,17 @@ it('dashboard shows paginated tables', function () {
         'manager_token' => 'dashm1',
     ]);
 
-    $response = $this->get(route('superadmin.dashboard'));
-    $response->assertStatus(200);
-    $response->assertSee('Dashboard Table');
+    Livewire::test(Dashboard::class)
+        ->assertSee('Dashboard Table');
 });
 
 it('logout redirects to login and clears session', function () {
-    Config::set('superadmin.password', 'testpass');
-    $this->post(route('superadmin.login'), ['password' => 'testpass']);
+    $this->withSession(['superadmin' => true]);
 
-    $response = $this->post(route('superadmin.logout'));
-    $response->assertRedirect(route('superadmin.login'));
-    $response->assertSessionHas('success');
+    Livewire::test(Dashboard::class)
+        ->call('logout')
+        ->assertRedirect(route('superadmin.login'));
+
+    expect(session('success'))->toBe('Logged out.');
     expect(session('superadmin'))->toBeNull();
 });

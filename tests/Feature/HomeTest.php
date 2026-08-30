@@ -2,25 +2,35 @@
 
 declare(strict_types=1);
 
+use App\Livewire\Home\Index;
 use App\Models\Table;
+use Livewire\Livewire;
 
 it('create table with invalid name returns validation errors', function () {
-    $response = $this->post('/tables', ['name' => '']);
-    $response->assertSessionHasErrors('name');
+    Livewire::test(Index::class)
+        ->set('form.name', '')
+        ->call('createTable')
+        ->assertHasErrors(['form.name' => 'required']);
 
-    $response = $this->post('/tables', ['name' => str_repeat('a', 256)]);
-    $response->assertSessionHasErrors('name');
+    Livewire::test(Index::class)
+        ->set('form.name', str_repeat('a', 256))
+        ->call('createTable')
+        ->assertHasErrors(['form.name' => 'max']);
 });
 
 it('create table with valid name redirects to manager url', function () {
-    $response = $this->post('/tables', ['name' => 'Friday game']);
-    $response->assertRedirect();
+    $test = Livewire::test(Index::class)
+        ->set('form.name', 'Friday game')
+        ->call('createTable');
+
     $this->assertDatabaseHas('poker_tables', ['name' => 'Friday game']);
 
     $table = Table::where('name', 'Friday game')->first();
-    $redirect = $response->headers->get('Location');
-    expect($redirect)->toContain($table->token);
-    expect($redirect)->toContain($table->manager_token);
+    expect($table->token)->not->toBeNull();
+    expect($table->manager_token)->not->toBeNull();
+
+    $test->assertRedirectContains($table->token)
+        ->assertRedirectContains($table->manager_token);
 });
 
 it('home page shows recent tables from cookie', function () {

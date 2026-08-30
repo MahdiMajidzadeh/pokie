@@ -2,28 +2,17 @@
 
 declare(strict_types=1);
 
+use App\Livewire\Tables\Show;
 use App\Models\BuyIn;
 use App\Models\Payback;
 use App\Models\Settlement;
 use App\Models\Table;
+use Livewire\Livewire;
 
 it('home page renders', function () {
     $response = $this->get('/');
     $response->assertStatus(200);
     $response->assertSee('Create table');
-});
-
-it('create table redirects to manager url', function () {
-    $response = $this->post('/tables', ['name' => 'Friday game']);
-    $response->assertRedirect();
-    $this->assertDatabaseHas('poker_tables', ['name' => 'Friday game']);
-
-    $table = Table::where('name', 'Friday game')->first();
-    expect($table->token)->not->toBeNull();
-    expect($table->manager_token)->not->toBeNull();
-    $redirect = $response->headers->get('Location');
-    expect($redirect)->toContain($table->token);
-    expect($redirect)->toContain($table->manager_token);
 });
 
 it('view only page has no forms', function () {
@@ -51,8 +40,10 @@ it('manager page has forms', function () {
     $response = $this->get('/t/viewtoken123/mgrtoken456');
     $response->assertStatus(200);
     $response->assertSee('Add player');
+    // Only the active tab's form is rendered (Buy-in by default); Payback
+    // and Settle render once their tab is selected via setTab().
     $response->assertSee('Record buy-in');
-    $response->assertSee('Record payback');
+    $response->assertSee('Payback');
 });
 
 it('manager page shows empty state before players are added', function () {
@@ -88,23 +79,30 @@ it('add player requires manager token', function () {
         'manager_token' => 'mgrtoken456',
     ]);
 
-    $response = $this->post('/t/viewtoken123/wrongmanager/players', ['name' => 'Alice']);
-    $response->assertRedirect('/t/viewtoken123');
+    Livewire::test(Show::class, ['token' => 'viewtoken123'])
+        ->set('playerForm.name', 'Alice')
+        ->call('addPlayer')
+        ->assertForbidden();
+
     $this->assertDatabaseMissing('players', ['name' => 'Alice']);
 });
 
 it('rejects duplicate player name at the same table', function () {
-    Table::create([
+    $table = Table::create([
         'name' => 'Test',
         'token' => 'duptoken',
         'manager_token' => 'dupmgr',
     ]);
 
-    $this->post('/t/duptoken/dupmgr/players', ['name' => 'Alice']);
+    Livewire::test(Show::class, ['token' => 'duptoken', 'managerToken' => 'dupmgr'])
+        ->set('playerForm.name', 'Alice')
+        ->call('addPlayer');
     $this->assertDatabaseCount('players', 1);
 
-    $response = $this->post('/t/duptoken/dupmgr/players', ['name' => 'Alice']);
-    $response->assertSessionHasErrors('name');
+    Livewire::test(Show::class, ['token' => 'duptoken', 'managerToken' => 'dupmgr'])
+        ->set('playerForm.name', 'Alice')
+        ->call('addPlayer')
+        ->assertHasErrors(['playerForm.name']);
     $this->assertDatabaseCount('players', 1);
 });
 
@@ -112,8 +110,12 @@ it('allows the same player name at different tables', function () {
     Table::create(['name' => 'A', 'token' => 'ta', 'manager_token' => 'ma']);
     Table::create(['name' => 'B', 'token' => 'tb', 'manager_token' => 'mb']);
 
-    $this->post('/t/ta/ma/players', ['name' => 'Alice']);
-    $this->post('/t/tb/mb/players', ['name' => 'Alice']);
+    Livewire::test(Show::class, ['token' => 'ta', 'managerToken' => 'ma'])
+        ->set('playerForm.name', 'Alice')
+        ->call('addPlayer');
+    Livewire::test(Show::class, ['token' => 'tb', 'managerToken' => 'mb'])
+        ->set('playerForm.name', 'Alice')
+        ->call('addPlayer');
 
     $this->assertDatabaseCount('players', 2);
 });
@@ -125,20 +127,31 @@ it('full flow buyin and payback', function () {
         'manager_token' => 'm1',
     ]);
 
-    $this->post('/t/t1/m1/players', ['name' => 'Alice']);
+    Livewire::test(Show::class, ['token' => 't1', 'managerToken' => 'm1'])
+        ->set('playerForm.name', 'Alice')
+        ->call('addPlayer');
     $this->assertDatabaseHas('players', ['name' => 'Alice']);
 
     $player = $table->players()->first();
 
-    $this->post('/t/t1/m1/buy-ins', ['player_id' => $player->id, 'amount' => 100]);
-    $this->post('/t/t1/m1/buy-ins', ['player_id' => $player->id, 'amount' => 50]);
+    Livewire::test(Show::class, ['token' => 't1', 'managerToken' => 'm1'])
+        ->set('moneyForm.player_id', $player->id)
+        ->set('moneyForm.amount', 100)
+        ->call('recordBuyIn');
+    Livewire::test(Show::class, ['token' => 't1', 'managerToken' => 'm1'])
+        ->set('moneyForm.player_id', $player->id)
+        ->set('moneyForm.amount', 50)
+        ->call('recordBuyIn');
 
     $table->refresh();
     $table->load(['players.buyIns', 'players.paybacks']);
     expect((float) $table->players->first()->amount)->toBe(150.0);
     expect((float) $table->bank)->toBe(150.0);
 
-    $this->post('/t/t1/m1/paybacks', ['player_id' => $player->id, 'amount' => 40]);
+    Livewire::test(Show::class, ['token' => 't1', 'managerToken' => 'm1'])
+        ->set('moneyForm.player_id', $player->id)
+        ->set('moneyForm.amount', 40)
+        ->call('recordPayback');
 
     $table->refresh();
     $table->load(['players.buyIns', 'players.paybacks']);
@@ -222,8 +235,10 @@ it('destroy buy-in requires manager token', function () {
     $player = $table->players()->create(['name' => 'Alice']);
     $buyIn = BuyIn::create(['table_id' => $table->id, 'player_id' => $player->id, 'amount' => -100]);
 
-    $response = $this->delete("/t/t1/wrongmanager/buy-ins/{$buyIn->id}");
-    $response->assertRedirect('/t/t1');
+    Livewire::test(Show::class, ['token' => 't1'])
+        ->call('deleteBuyIn', $buyIn->id)
+        ->assertForbidden();
+
     $this->assertDatabaseHas('buy_ins', ['id' => $buyIn->id]);
 });
 
@@ -232,9 +247,9 @@ it('destroy buy-in deletes record with valid manager token', function () {
     $player = $table->players()->create(['name' => 'Alice']);
     $buyIn = BuyIn::create(['table_id' => $table->id, 'player_id' => $player->id, 'amount' => -100]);
 
-    $response = $this->delete("/t/t1/m1/buy-ins/{$buyIn->id}");
-    $response->assertRedirect();
-    $response->assertSessionHas('success');
+    Livewire::test(Show::class, ['token' => 't1', 'managerToken' => 'm1'])
+        ->call('deleteBuyIn', $buyIn->id);
+
     $this->assertDatabaseMissing('buy_ins', ['id' => $buyIn->id]);
 });
 
@@ -243,9 +258,9 @@ it('destroy payback deletes record with valid manager token', function () {
     $player = $table->players()->create(['name' => 'Alice']);
     $payback = Payback::create(['table_id' => $table->id, 'player_id' => $player->id, 'amount' => 50]);
 
-    $response = $this->delete("/t/t1/m1/paybacks/{$payback->id}");
-    $response->assertRedirect();
-    $response->assertSessionHas('success');
+    Livewire::test(Show::class, ['token' => 't1', 'managerToken' => 'm1'])
+        ->call('deletePayback', $payback->id);
+
     $this->assertDatabaseMissing('paybacks', ['id' => $payback->id]);
 });
 
@@ -254,9 +269,9 @@ it('destroy settlement deletes record with valid manager token', function () {
     $player = $table->players()->create(['name' => 'Alice']);
     $settlement = Settlement::create(['table_id' => $table->id, 'player_id' => $player->id, 'amount' => 10]);
 
-    $response = $this->delete("/t/t1/m1/settlements/{$settlement->id}");
-    $response->assertRedirect();
-    $response->assertSessionHas('success');
+    Livewire::test(Show::class, ['token' => 't1', 'managerToken' => 'm1'])
+        ->call('deleteSettlement', $settlement->id);
+
     $this->assertDatabaseMissing('settlements', ['id' => $settlement->id]);
 });
 
@@ -264,8 +279,11 @@ it('store buy-in with amount zero returns validation error', function () {
     $table = Table::create(['name' => 'T', 'token' => 't1', 'manager_token' => 'm1']);
     $player = $table->players()->create(['name' => 'Alice']);
 
-    $response = $this->post('/t/t1/m1/buy-ins', ['player_id' => $player->id, 'amount' => 0]);
-    $response->assertSessionHasErrors('amount');
+    Livewire::test(Show::class, ['token' => 't1', 'managerToken' => 'm1'])
+        ->set('moneyForm.player_id', $player->id)
+        ->set('moneyForm.amount', 0)
+        ->call('recordBuyIn')
+        ->assertHasErrors(['moneyForm.amount']);
 });
 
 it('store settlement with invalid player_id returns validation error', function () {
@@ -273,13 +291,18 @@ it('store settlement with invalid player_id returns validation error', function 
     $otherTable = Table::create(['name' => 'Other', 'token' => 't2', 'manager_token' => 'm2']);
     $otherPlayer = $otherTable->players()->create(['name' => 'Other Player']);
 
-    $response = $this->post('/t/t1/m1/settlements', ['player_id' => $otherPlayer->id, 'amount' => 10]);
-    $response->assertSessionHasErrors('player_id');
+    Livewire::test(Show::class, ['token' => 't1', 'managerToken' => 'm1'])
+        ->set('settlementForm.player_id', $otherPlayer->id)
+        ->set('settlementForm.amount', 10)
+        ->call('recordSettlement')
+        ->assertHasErrors(['settlementForm.player_id']);
 });
 
 it('store player with empty name returns validation error', function () {
-    $table = Table::create(['name' => 'T', 'token' => 't1', 'manager_token' => 'm1']);
+    Table::create(['name' => 'T', 'token' => 't1', 'manager_token' => 'm1']);
 
-    $response = $this->post('/t/t1/m1/players', ['name' => '']);
-    $response->assertSessionHasErrors('name');
+    Livewire::test(Show::class, ['token' => 't1', 'managerToken' => 'm1'])
+        ->set('playerForm.name', '')
+        ->call('addPlayer')
+        ->assertHasErrors(['playerForm.name']);
 });
