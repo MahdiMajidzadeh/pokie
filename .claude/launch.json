@@ -3,7 +3,7 @@
   "configurations": [
     {
       "name": "pokie",
-      "runtimeExecutable": "/opt/homebrew/opt/php@8.4/bin/php",
+      "runtimeExecutable": "php",
       "runtimeArgs": ["artisan", "serve", "--port=8321"],
       "port": 8321
     }
