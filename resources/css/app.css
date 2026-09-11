@@ -1,0 +1,24 @@
+@import 'tailwindcss';
+@import '../../vendor/livewire/flux/dist/flux.css';
+@import '../../vendor/mahdimajidzadeh/ds/resources/css/mds.css';
+
+/* Tailwind v4 skips gitignored paths, so the kit's Blade views need pointing at
+   by hand or the utility classes inside them are never generated. */
+@source '../../vendor/mahdimajidzadeh/ds/resources/views';
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
+
+    /* pTable is a poker app: a felt-table green as the one accent. Flux and
+       Majid DS both follow --color-accent, so this trio themes every
+       flux:* and mds:* component in the app. Light theme only (no .dark
+       override) — see resources/css/app.css history if dark mode is added. */
+    --color-accent: var(--color-emerald-600);
+    --color-accent-content: var(--color-emerald-600);
+    --color-accent-foreground: var(--color-white);
+}

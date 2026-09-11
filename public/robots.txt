@@ -1,0 +1,7 @@
+# pTable table pages are unguessable-URL, not private — a crawler that
+# indexes /{table_hash} would still make a live game's money visible in
+# search results, so nothing under this app is crawlable. Individual
+# pages also send X-Robots-Tag: noindex, nofollow (see NoIndex middleware
+# and requirement.md §4.2 / §4.4 AR-19).
+User-agent: *
+Disallow: /
