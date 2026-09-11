@@ -9,6 +9,7 @@ use App\Models\Payment;
 use App\Models\Player;
 use App\Models\Table;
 use App\Support\Ledger;
+use App\Support\SettlementText;
 use Illuminate\Database\Eloquent\Collection;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
@@ -70,6 +71,14 @@ class Board extends Component
     public function paidCount(): int
     {
         return $this->payments()->filter(fn ($payment) => $payment->paid_at !== null)->count();
+    }
+
+    /**
+     * The settled table as chat-pasteable plain text (see SettlementText).
+     */
+    public function settlementText(): string
+    {
+        return SettlementText::for($this->table());
     }
 
     /**

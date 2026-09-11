@@ -79,6 +79,9 @@
                     <flux:text size="sm" class="text-zinc-400">No payments needed — everyone broke even.</flux:text>
                 @endforelse
             </div>
+
+            {{-- Everyone — manager and viewers alike — wants this in the group chat. --}}
+            <x-copy-button :text="$this->settlementText()" label="Copy settlement as text" class="mt-4 w-full" />
         </flux:card>
     @else
         {{-- S3/S4: live player list --}}

@@ -1,8 +1,11 @@
 {{--
-    Clipboard copy button. The URL is passed via a data-* attribute and read
-    off $root.dataset in Alpine, rather than inlined with @js(...) — @js()
-    inside an Alpine attribute has been known to break Livewire's
-    morph-aware Blade compiler on long expressions.
+    Clipboard copy button. Pass `url` (a link) or `text` (any string, newlines
+    included — e.g. the settlement summary). The value is passed via a data-*
+    attribute and read off $root.dataset in Alpine, rather than inlined with
+    @js(...) — @js() inside an Alpine attribute has been known to break
+    Livewire's morph-aware Blade compiler on long expressions, and a
+    multi-line value would have made that worse. {{ }} escapes the value and
+    the browser decodes it back, newlines intact, when reading dataset.
 
     Two real-world failure modes to guard against:
     1. navigator.clipboard only exists in a "secure context" — HTTPS, or the
@@ -17,7 +20,8 @@
        the modern async API is the fallback, not the other way around.
 --}}
 @props([
-    'url',
+    'url' => null,
+    'text' => null,
     'label' => 'Copy link',
 ])
 <button
@@ -29,7 +33,7 @@
             setTimeout(() => (this.copied = false), 1500);
         },
         copy() {
-            const text = $root.dataset.url;
+            const text = $root.dataset.copy;
 
             let legacyOk = false;
             try {
@@ -62,7 +66,7 @@
         },
     }"
     x-on:click="copy()"
-    data-url="{{ $url }}"
+    data-copy="{{ $text ?? $url }}"
     {{ $attributes->merge(['class' => 'inline-flex items-center justify-center gap-1.5 rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50']) }}
 >
     <mds:icon icon="copy-01" class="size-4" />
