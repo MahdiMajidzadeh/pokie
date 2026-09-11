@@ -1,8 +1,12 @@
 *.log
 .DS_Store
-.env
-.env.backup
-.env.production
+# No .env exists anywhere — not committed, not in the image, not required at
+# build time. All runtime config comes from the Dokploy panel (see
+# DEPLOY.md). This wildcard (with the negation below) is broader than the
+# three variants it replaced, which would have let a stray .env.local or
+# .env.testing slip through.
+.env*
+!.env.example
 .phpactor.json
 .phpunit.result.cache
 /.codex
